@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vite-app</title>
+    <style>
+      @font-face {
+        font-family: "Regular1";
+        src: url("./public/font/ClashDisplay-Regular.woff2") format("woff2"),
+          url("./public/font/ClashDisplay-Regular.woff") format("woff");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      /* .box {
+        height: 160px;
+        padding: 30px;
+        box-sizing: border-box;
+        background: red;
+        position: relative;
+      }
+      .content {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        background: yellow;
+        animation: move 1s linear infinite;
+      }
+      @keyframes move {
+        0% {
+          left: 20px;
+          top: 20px;
+        }
+        100% {
+          left: 0;
+          top: 0;
+        }
+      } */
+      /* .box {
+        max-width: 400px;
+        height: 100px;
+        background: yellow;
+      } */
+      /* .content {
+        width: 600px;
+        background: red;
+        height: 100px;
+      } */
+      /* input[type="checkbox"] {
+        width: 300px;
+        height: 100px;
+        background: red;
+      }
+      .img:after {
+        content: url(./public/3.png);
+        display: block;
+        width: 200px;
+        height: 200px;
+      } */
+      /* img {
+        width: 200px;
+        height: 200px;
+        display: block;
+        outline: 1px solid yellow;
+        border: 1px solid red;
+        position: relative;
+        content: url("./public/3.png");
+      } */
+      /* img:hover {
+        content: url("./public/4.png");
+      } */
+      /* img:after {
+        content: "hhhhh";
+        background: red;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+      } */
+      /* .h1:after {
+        width: 200px;
+        content: "哈哈哈哈哈";
+      }
+      .content {
+        padding: 10px;
+        border: 1px solid red;
+      }
+      .nocontent:empty {
+        border: 1px dashed blue;
+      }
+      .nocontent:after {
+        content: "哈哈哈";
+      } */
+      /* .content {
+        width: 256px;
+        height: 256px;
+        text-align: justify;
+        border-bottom: 1px dashed blue;
+      }
+      .content:before {
+        content: "";
+        display: inline-block;
+        height: 100%;
+      }
+      .content:after {
+        content: "";
+        display: inline-block;
+        width: 100%;
+      } */
+      /* .bar {
+        display: inline-block;
+        width: 20px;
+        height: 100px;
+        background: red;
+      }
+      .myfont {
+        font-family: Regular1;
+        color: red;
+      }
+      .dot {
+        display: inline-block;
+        height: 1em;
+        line-height: 1;
+        text-align: left;
+        vertical-align: -0.25em;
+        overflow: hidden;
+      }
+      .dot:before {
+        display: block;
+        content: "...\A..\A.";
+        white-space: pre-wrap;
+        animation: dot 2s infinite step-start both;
+      } */
+      /* @keyframes dot {
+        33% {
+          transform: translateY(-2em);
+        }
+        66% {
+          transform: translateY(-1em);
+        }
+      } */
+      /* .div {
+        content: url("./public/3.png");
+        width: 200px;
+        height: 200px;
+      } */
+
+      /* .question {
+        quotes: "提问： “" "“";
+      }
+      .answer {
+        quotes: "回答： “" "“";
+      }
+      .question:before,
+      .answer:before {
+        content: open-quote;
+      }
+      .question:after,
+      .answer:after {
+        content: close-quote;
+      }
+      .title:before {
+        content: attr(data-title);
+      } */
+      /* .counter {
+        --number: 1;
+        counter-reset: count var(--number) count1 2;
+      }
+      .counter:before {
+        counter-increment: count var(--number) count1 3;
+        content: counter(count);
+      }
+      .counter:after {
+        counter-increment: count var(--number);
+        content: counter(count1);
+      } */
+      /* .main,
+      .reset {
+        padding-left: 20px;
+        counter-reset: count 0;
+      }
+      .counter {
+        counter-increment: count 1;
+      }
+      .counter:before {
+        content: counters(count, "-") ".";
+      } */
+      a {
+        padding: 40px 0;
+        display: inline-block;
+      }
+      .header {
+        width: 1000px;
+        height: auto;
+        max-height: 200px;
+        position: relative;
+      }
+      .header img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+      }
+    </style>
+    <style>
+      /* .box {
+        border: 2px dashed red;
+      }
+      span {
+        padding: 50%;
+        font-size: 0;
+        background: gray;
+      } */
+      /* button {
+        position: absolute;
+        clip: rect(0, 0, 0, 0);
+      }
+      label {
+        display: inline-block;
+        line-height: 20px;
+        padding: 10px;
+      } */
+      /* .more {
+        display: inline-block;
+        width: 140px;
+        height: 10px;
+        padding: 35px 0;
+        border-top: 10px solid;
+        border-bottom: 10px solid;
+        background: red;
+        background-clip: content-box;
+      } */
+      /* .circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        padding: 10px;
+        border: 6px solid red;
+        background: red;
+        background-clip: content-box;
+      } */
+      /* .box {
+        overflow: hidden;
+      } */
+      /* .box img {
+        float: right;
+        width: 140px;
+        height: 100%;
+        object-fit: contain;
+      }
+      .box p {
+        margin-right: 140px;
+      } */
+      /* .full {
+        width: 100%;
+        float: left;
+      }
+      .full p {
+        margin-right: 140px;
+      }
+      img {
+        width: 128px;
+        height: 128px;
+        float: left;
+        margin-left: -128px;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+      } */
+      /* .second {
+        width: 640px;
+      }
+      .ul {
+        margin-right: -20px;
+      }
+      .ul li {
+        list-style: none;
+        width: 200px;
+        height: 200px;
+        background: red;
+        margin-right: 20px;
+        float: left;
+      } */
+      /* .second {
+        overflow: hidden;
+      }
+      .column-left,
+      .column-right {
+        width: 40%;
+        float: left;
+        margin-bottom: -9999px;
+        padding-bottom: 9999px;
+      }
+      .column-left {
+        background-color: #34538b;
+      }
+      .column-right {
+        background-color: #cd0000;
+      } */
+      /* .box {
+        background: olive;
+        overflow: hidden;
+      }
+      .son {
+        margin: 20px 0;
+      } */
+      /* .box {
+        height: 300px;
+        width: 300px;
+        background: red;
+      }
+      .box img {
+        margin: 30px;
+        width: 100%;
+        height: 100%;
+      }
+      .son {
+        height: 100%;
+        margin-bottom: 20px;
+      } */
+    </style>
+    <style>
+      /* .layer {
+        width: 200px;
+        height: 200px;
+        position: absolute;
+        left: 0;
+        right: 0;
+        will-change: left;
+        opacity: 1;
+        background: red;
+        animation: move 3s linear infinite alternate;
+      }
+      @keyframes move {
+        100% {
+          left: 200px;
+        }
+      } */
+      #element {
+        /* width: 300px;
+        height: 300px;
+        background: skyblue;
+        position: absolute; */
+        /*  left: 0;
+        top: 0; */
+        font-size: 16px;
+      }
+      /* .moved {
+        left: 300px;
+      }
+      .icon-menu {
+        width: 100px;
+        height: 10px;
+        padding: 30px 0;
+        border-top: 20px solid red;
+        border-bottom: 20px solid yellow;
+        background: blue;
+        background-clip: content-box;
+      } */
+      /* .border {
+        border: 149px dashed red;
+        width: 150px;
+        height: 150px;
+        box-sizing: border-box;
+      } */
+      /* .border {
+        border-right: 50px solid transparent;
+        background-position: 100% 100%;
+        background-image: url('/public/3.png');
+        background-repeat: no-repeat;
+        background-size: 10px 10px;
+       } */
+      /* .border1 {
+        width: 10px;
+        height: 10px;
+        border: 10px solid;
+        border-width: 10px 10px;
+        border-color: red red transparent transparent;
+        border-top-color: red;
+      } */
+      /* .box {
+        border-left: 150px solid red;
+      }
+      .box:after {
+        content: "";
+        display: block;
+        clear: both;
+      }
+      .box > nav {
+        float: left;
+        width: 150px;
+        margin-left: -150px;
+      }
+      .box .section {
+        overflow: hidden;
+      } */
+    </style>
+    <style>
+      .box {
+        /* font-size: 40px; */
+      }
+      /* .arrow {
+        display: inline-block;
+        height: 1ex;
+        width: 20px;
+        background: url(./public/arrow.png) no-repeat center;
+        background-size: 20px;
+      } */
+      /* .box {
+        width: 280px;
+        outline: 1px solid red;
+        text-align: center;
+      }
+      .box img {
+        height: 96px;
+      } */
+      .container {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        width: 400px;
+        height: 400px;
+        border: 1px solid yellow;
+        bottom: 0;
+      }
+      .box {
+        width: 300px;
+        height: 300px;
+        background: red;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box" id="box"></div>
+    </div>
+    <!-- <div class="box">
+      <img src="/public/4.png" />
+    </div> -->
+    <div>
+      <!-- <div class="header">
+        <img src="./public/cover.jpg" />
+      </div> -->
+
+      <!-- <div style="margin: 30px">哈哈哈</div>
+    <div style="height: 40px; overflow: auto"> -->
+      <!-- <a>点击区域</a> -->
+      <!-- </div> -->
+      <!-- <div class="reset">
+      <div class="counter">
+        我是王小二
+        <div class="reset">
+          <div class="counter">我是王小二的大儿子</div>
+          <div class="counter">
+            我是王小二的二儿子
+            <div class="reset">
+              <div class="counter">我是王小二的二儿子的大孙子</div>
+              <div class="counter">我是王小二的二儿子的二孙子</div>
+              <div class="counter">我是王小二的二儿子的小孙子</div>
+            </div>
+          </div>
+          <div class="counter">我是王小二的三儿子</div>
+        </div>
+      </div>
+      <div class="counter">我是王小三</div>
+      <div class="counter">
+        我是王小四
+        <div class="reset">
+          <div class="counter">我是王小四的大儿子</div>
+        </div>
+      </div>
+    </div> -->
+      <!-- <div class="counter"></div> -->
+      <!-- <div id="app"></div> -->
+      <!-- <a target="_blank">点击链接</a>
+    <h1 class="h1">《css世界》</h1>
+    <div class="div">cd</div> -->
+      <!-- <div class="title" data-title="这是属性title">
+        正在加载中 -->
+      <!-- <span class="dot">...</span> -->
+      <!-- </div>
+      <div class="question">为什么好玩</div>
+      <div class="answer">因为就是好玩啊</div> -->
+      <!-- <div class="content">有内容</div>
+    <div class="nocontent"></div> -->
+      <!-- <div class="content"><i class="bar"></i>
+      <i class="bar"></i>
+      <i class="bar"></i>
+      <i class="bar"></i>
+      <i class="bar"></i>
+      <i class="bar"></i>
+      <i class="bar"></i>
+    </div> -->
+
+      <!-- <div class="box">
+      <div class="content">box1</div>
+    </div>
+    <input type="checkbox" />
+    <button>
+      我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮
+    </button> -->
+      <!-- <img alt="哈哈哈" /> -->
+      <!-- <div class="img"></div> -->
+      <!-- <input
+      type="button"
+      value="我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个按钮我是一个"
+    /> -->
+      <!-- <div class="myfont">Regular</div>
+      <div>Regular</div> -->
+
+      <!-- <button onclick="createArray()">创建数组</button>
+    <button onclick="storeArray()">给变量赋值</button>
+    <button onclick="clearArray()">清除变量</button>
+    <button onclick="leak()">内存泄露</button> -->
+    </div>
+    <div class="second">
+      <!-- <div class="more"></div>
+      <div class="circle"></div> -->
+      <!-- <ul class="ul">
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+      </ul> -->
+      <!-- <div id="colLeft" class="column-left">
+        <h4>正方观点</h4>
+        <p>观点1</p>
+      </div>
+      <div id="colRight" class="column-right">
+        <h4>反方观点</h4>
+        <p>观点1</p>
+        <p>观点1</p>
+        <p>观点1</p>
+        <p>观点1</p>
+        <p>观点1</p>
+        <p>观点1</p>
+        <p>观点1</p>
+        <p>观点1</p>
+      </div> -->
+      <!-- <div class="box">
+        <img src="/3.png" />
+      </div> -->
+      <!-- <div class="layer"></div> -->
+      <!-- <div style="height: 100px; padding: 50px 0">
+        <img src="./public/4.png" height="300" />
+      </div> -->
+      <!-- <div class="box">
+        <div class="full">
+          <p>文字内容</p>
+        </div>
+        <img src="./public/3.png" />
+      </div> -->
+      <!-- <button id="btn"></button>
+      <label for="btn">按钮</label>
+      <div class="box">
+        <span></span>
+      </div> -->
+    </div>
+    <div>
+      <!-- <div class="layer"></div>
+      <div id="element">这是一首默认的古诗，请你读一下这段文字</div> -->
+      <!-- <div class="border"></div> -->
+      <!-- <div class="icon-menu"></div> -->
+      <!-- <p class="border">
+        这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字这是一段文字
+      </p> -->
+      <!-- <p class="border1"></p> -->
+      <!-- <div class="box">
+        <nav>
+          <p>21321</p>
+          <p>21321</p>
+          <p>21321</p>
+          <p>21321</p>
+          <p>21321</p>
+        </nav>
+        <div class="section">这是setion</div>
+      </div> -->
+    </div>
+    <script>
+      let x = 2;
+      function animate() {
+        // console.log(x);
+        box.style.transform = `translateX(${(x += 2)}px)`;
+        if (x >= 300) return;
+        requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+    </script>
+    <script>
+      function log(message) {
+        if (Math.random() < 0.9) {
+          throw new Error(message);
+        } else {
+          console.log("log", message);
+        }
+      }
+      function say(message) {
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            try {
+              log(message);
+              resolve("say resolve");
+            } catch (e) {
+              reject("say reject", e.message);
+            }
+          });
+        });
+      }
+      function sayHi(message) {
+        try {
+          say("hi");
+        } catch (e) {
+          console.log("sayHi, failed to say hi");
+        }
+      }
+      function mustSayHi() {
+        try {
+          say("hi");
+        } catch (e) {
+          console.log("mustsayhi failed to say hi");
+        }
+      }
+      sayHi();
+    </script>
+    <script>
+      // function createArray() {
+      //   const data = new Array(10000000).fill("hello worid");
+      // }
+      // function storeArray() {
+      //   window.data = new Array(10000000).fill("store worid");
+      // }
+      // function clearArray() {
+      //   window.data = undefined;
+      // }
+      // function leak() {
+      //   const data = new Array(10000000).fill("hello words");
+      //   window.addEventListener("message", () => {
+      //     console.log(data);
+      //   });
+      // }
+    </script>
+    <script>
+      const el = document.getElementById("element");
+      // 1️⃣ First：记录初始位置
+      const first = el.getBoundingClientRect();
+
+      // 2️⃣ Last：执行状态改变（比如添加 class 改变布局）
+      el.classList.add("moved");
+      const last = el.getBoundingClientRect();
+
+      // 3️⃣ Invert：计算位移差并反转 transform
+      const dx = first.left - last.left;
+      const dy = first.top - last.top;
+
+      // el.style.transform = `translate(${dx}px, ${dy}px)`;
+
+      // // 4️⃣ Play：触发过渡动画到正确位置
+      // requestAnimationFrame(() => {
+      //   el.style.transition = "transform 0.5s ease";
+      //   el.style.transform = "none";
+      // });
+    </script>
+    <script type="module" src="/src/main.js"></script>
+    <!-- <script>
+    // 红灯3秒
+    // 绿灯1秒
+    // 黄灯2秒
+    class Light {
+      color = "red";
+      duration = 3;
+
+      getSecond() {
+        return new Date().getSeconds();
+      }
+
+      execute() {
+        this.light("red", 3);
+      }
+
+      light(color, duration = 3) {
+        return new Promise((resolve, reject) => {
+          console.log(this.color, this.getSecond());
+          this.timer && clearTimeout(this.timer);
+          this.timer = setTimeout(() => {
+            this.change(this.color);
+            this.light(this.color, this.duration);
+            resolve();
+          }, duration * 1000);
+        });
+      }
+
+      change(color) {
+        switch (color) {
+          case "red":
+            this.color = "green";
+            this.duration = 1;
+            break;
+          case "green":
+            this.color = "yellow";
+            this.duration = 2;
+            break;
+          case "yellow":
+            this.color = "red";
+            this.duration = 3;
+            break;
+        }
+      }
+    }
+  </script> -->
+    <!-- <script>
+    class EventEmitter {
+      constructor() {
+        this.event = new Map();
+      }
+
+      on(event, fn) {
+        if (this.event.has(event)) {
+          this.event.get(event).push(fn);
+        } else {
+          this.event.set(event, [fn]);
+        }
+      }
+
+      emit(event, ...args) {
+        const events = this.event.get(event);
+        if (!events) return;
+        events.forEach((fn) => fn(...args));
+      }
+
+      once(event) {
+        if (!this.event.has(event)) return;
+        this.emit(event);
+        this.event.delete(event);
+      }
+
+      off(event, fn) {
+        if (!this.event.has(event)) return;
+        if (!fn) {
+          this.event.delete(event);
+          return;
+        }
+        const newFns = this.event.get(event).filter((cb) => cb !== fn);
+        this.event.set(event, newFns);
+      }
+    }
+    const bus = new EventEmitter();
+    const greet = (name) => console.log("Hi", name);
+    bus.on("hello", greet);
+    bus.emit("hello", "Tom");
+    bus.off("hello", greet);
+    bus.emit("hello", "Jerry");
+  </script> -->
+    <!-- <script>
+    function Instanceof(obj, constructor) {
+      while (obj.__proto__) {
+        if (obj.__proto__ === constructor.prototype) return true;
+        obj = obj.__proto__;
+      }
+      return false;
+    }
+  </script> -->
+    <!-- <script>
+    function useState(defaultValue) {
+      let state = defaultValue;
+      function setState(param) {
+        const newState = typeof param === "function" ? param(state) : param;
+        state = newState;
+        if (newState === state) {
+          render();
+        }
+      }
+      return [state, setState];
+    }
+
+    function render() {}
+
+    const weakMap = new WeakMap();
+    let activeEffect = false;
+    function track(target, key) {
+      if (!activeEffect) return;
+      let depsMap = weakMap.get(target);
+      if (!depsMap) {
+        depsMap = new Map();
+        weakMap.set(target, depsMap);
+      }
+      let dep = depsMap.get(key);
+      if (!dep) {
+        dep = new Set();
+        depsMap.set(key, dep);
+      }
+      dep.add(activeEffect);
+    }
+
+    function trigger(target, key) {
+      const depsMap = weakMap.get(target);
+      if (!depsMap) return;
+      const deps = depsMap.get(key);
+      if (!dep) return;
+      [...deps].forEach((effect) => effect());
+    }
+
+    function reactive(obj) {
+      if (typeof obj !== "object" || obj === null) return obj;
+      return new Proxy(obj, {
+        set(target, key, value, receiver) {
+          const oldValue = target[key];
+          const result = Reflect.set(target, key, value, receiver);
+          if (oldValue !== value) {
+            trigger(target, key);
+          }
+          return result;
+        },
+        get(target, key, receiver) {
+          const value = Reflect.get(target, key, receiver);
+          track(target, key);
+          return typeof value === "object" ? reactive(value) : value;
+        },
+      });
+    }
+
+    function effect(fn) {
+      const run = () => {
+        activeEffect = run;
+        fn();
+        activeEffect = null;
+      };
+      run();
+      return run;
+    }
+  </script> -->
+    <!-- <script>
+    class AsyncModule {
+      constructor(max) {
+        this.max = max;
+        this.start = 0;
+        this.quene = [];
+      }
+      add(fn) {
+        return new Promise((resolve, reject) => {
+          const func = async () => {
+            try {
+              this.start++;
+              fn();
+              resolve();
+            } catch (e) {
+              reject(e);
+            } finally {
+              this.state--;
+              this.next();
+            }
+          };
+          if (this.start < this.max) {
+            func();
+          } else {
+            this.quene.push(func);
+          }
+        });
+      }
+
+      next() {
+        if (this.start < this.max && this.quene.length) {
+          this.quene.pop()();
+        }
+      }
+
+      all(fns) {
+        fns.forEach((fn) => {
+          this.add(fn);
+        });
+      }
+    }
+  </script> -->
+    <!-- <script>
+    Promise.myAllSettled = function (promises) {
+      return new Promise((resolve) => {
+        const result = [];
+        for (let i in promises) {
+          Promise.resolve(promises[i]).then(
+            (res) => {
+              result[i] = {
+                status: "fulfilled",
+                value: res,
+              };
+              // == ,因为i是‘1’
+              if (i == promises.length - 1) resolve(result);
+            },
+            (reason) => {
+              result[i] = {
+                status: "rejected",
+                value: reason,
+              };
+              if (i == promises.length - 1) resolve(result);
+            }
+          );
+        }
+      });
+    };
+    Promise.myAllSettled([Promise.resolve(1), Promise.reject("error"), 42]).then(console.log);
+  </script> -->
+    <!-- <script>
+    // compose(x,y,z)(...args) => x(y(z(...args)))
+    function compose(...fns) {
+      let current;
+      return function (...args) {
+        while (fns.length) {
+          if (!current) {
+            current = fns.pop()(...args);
+          } else {
+            current = fns.pop()(current);
+          }
+        }
+        return current;
+      };
+    }
+    // function compose(...funcs) {
+    //   if (!funcs.length) return arg => arg;
+    //   if (funcs.length === 1) return funcs[0];
+    //   return funcs.reduce((a, b) => (...args) => a(b(...args)));
+    // }
+
+    const add = (x) => x + 1;
+    const double = (x) => x * 2;
+    const square = (x) => x * x;
+    const fn = compose(square, double, add);
+    console.log(fn(2));
+  </script> -->
+    <!-- <script>
+    // fetchWithRetry(fetchFn, { retries: 3, interval: 1000 });
+    function fetchWithRetry(fn, options = { retries: 3, interval: 1000 }) {
+      async function execute() {
+        return new Promise(async (resolve, reject) => {
+          try {
+            await fetchFn();
+            resolve();
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+      async function retry(error) {
+        if (options.retries <= 0) return;
+        try {
+          options.retries--;
+          await execute();
+        } catch (e) {
+          setTimeout(() => {
+            retry();
+          }, options.interval);
+        }
+      }
+      execute.catch(retry);
+    }
+  </script> -->
+    <!-- <script>
+    // const cache = new LRUCache(2);
+    // cache.put("a", 1);
+    // cache.put("b", 2);
+    // console.log(cache.get("a")); // 1
+    // cache.put("c", 3);
+    // console.log(cache.get("b")); // -1 (被淘汰)
+    class LRUCache {
+      constructor(max) {
+        this.max = max;
+        this.map = new Map();
+      }
+      put(key, value) {
+        if (this.map.size >= this.max) {
+          const key = this.map.keys().next().value;
+          this.map.delete(key);
+        } else if (this.map.has(key)) {
+          this.map.delete(key);
+        }
+        this.map.set(key, value);
+      }
+      get(key) {
+        if (!this.map.has(key)) return -1;
+        const value = this.map.get(key);
+        this.map.delete(key);
+        this.map.set(key, value);
+        return value;
+      }
+    }
+    const cache = new LRUCache(2);
+    cache.put("a", 1);
+    cache.put("b", 2);
+    console.log(cache.get("a")); // 1
+    cache.put("c", 3);
+    console.log(cache.get("b")); //
+  </script> -->
+    <!-- <script>
+    // asyncPool(3, urls, fetchFn).then(console.log);
+    function asyncPool(max, urls, fn) {
+      const quene = [];
+      let result = {};
+      const _urls = urls.slice();
+      function pushQuene() {
+        if (this.quene.length >= this.max) return;
+        const maxUrl = _urls.splice(0, max - quene.length);
+        const promise = [
+          ...maxUrl.map((url) =>
+            Promise.resolve()
+              .then(fn(url))
+              .then(
+                (res) =>
+                  (result[url] = {
+                    status: "fulfilled",
+                    value: res,
+                  }),
+                (res) =>
+                  (result[url] = {
+                    status: "rejected",
+                    value: res,
+                  })
+              )
+          ),
+        ];
+        this.quene.push(...promises);
+      }
+
+      do pushQuene();
+      while (this.quene.length);
+      {
+        try {
+          this.quene.shift()();
+        } finally {
+          pushQuene();
+        }
+      }
+      if (!this.quene.length) return Promise.resolve(result);
+    }
+  </script> -->
+    <!-- <script>
+    const vnode = {
+      tag: "div",
+      props: { className: "app" },
+      children: [
+        { tag: "h1", children: ["Hello"] },
+        { tag: "p", children: ["World"] },
+      ],
+    };
+    function transformTree(obj, node) {
+      function createElement(type = "span", props = {}, parent = document) {
+        const ele = document.createElement(type);
+        Object.keys(props).forEach((key) => {
+          ele[key] = props[key];
+        });
+        parent.appendChild(ele);
+        return ele;
+      }
+      function generate(obj, parent) {
+        const ele = createElement(obj.tag, obj.props, parent);
+        if (obj.children && obj.children.length > 0) {
+          obj.children.forEach((child) => {
+            if (typeof child === "string")
+              child = {
+                tag: "span",
+                props: {
+                  textContent: child,
+                },
+              };
+            generate(child, ele);
+          });
+        }
+      }
+      generate(obj, node);
+    }
+    transformTree(vnode, document.getElementById("tree"));
+  </script> -->
+    <!-- <script>
+    // 错误版本：
+    Promise.retry = function (fn, times, delay) {
+      let timer;
+      const run = () => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            time--;
+            const result = await fn();
+            resolve(result);
+          } catch (e) {
+            timer && clearTimeout(timer);
+            timer = setTimeout(() => {
+              run();
+            }, delay);
+          }
+        });
+      };
+
+      while (times > 0) {
+        // 错误：同步递归
+        run().then((result) => {
+          console.log(result);
+        });
+      }
+    };
+    // 正确版本
+    Promise.retry = function (fn, times, delay) {
+      let timer;
+      const run = () => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const result = await fn();
+            resolve(result);
+          } catch (e) {
+            timer && clearTimeout(timer);
+            if (times <= 0) {
+              reject(e);
+              return;
+            }
+            times--;
+            timer = setTimeout(() => {
+              run().then(resolve, reject);
+            }, delay);
+          }
+        });
+      };
+      return run();
+    };
+  </script> -->
+    <!-- <script>
+    function reverse(_str) {
+      let left = 0,
+        right = _str.length - 1;
+      const str = [..._str];
+      while (left < right) {
+        const temp = str[left];
+        str[left] = str[right];
+        str[right] = temp;
+        left++;
+        right--;
+      }
+      return str.join("");
+    }
+    reverse("123456789");
+  </script> -->
+    <!-- <script>
+    function findFirstLetter(str) {
+      const map = new Map();
+      let index;
+      for (let key of str) {
+        map.set(key, (map.get(key) || 0) + 1);
+      }
+      for (let i = 0, l = str.length; i < l; i++) {
+        if (map.get(str[i]) === 1) return i;
+      }
+      return -1;
+    }
+    findFirstLetter("101");
+  </script> -->
+    <!-- <script>
+    function isPalind(str) {
+      let left = 0,
+        right = str.length - 1;
+      while (left < right) {
+        if (str[left] !== str[right]) return false;
+        left++;
+        right--;
+      }
+      return true;
+    }
+  </script> -->
+    <!-- <script>
+    // commonSuffix(["flower","flow","flight"])
+    function commonSuffix(arr) {
+      let maxStrCount = arr[0].length - 1;
+      let str = "";
+      let arrIdx = 0;
+      let strIdx = 0;
+      while (strIdx < maxStrCount) {
+        let canNext = true;
+        const current = arr[arrIdx];
+        while (arr[arrIdx]) {
+          const item = arr[arrIdx].slice(0, strIdx + 1);
+          const compare = str + current.slice(strIdx, strIdx + 1);
+          if (item !== compare) canNext = false;
+          arrIdx++;
+        }
+        if (canNext) {
+          str += current.slice(strIdx, strIdx + 1);
+          strIdx++;
+          arrIdx = 0;
+        } else {
+          return str;
+        }
+      }
+      return str;
+    }
+    commonSuffix(["flower", "flow", "flight"]);
+  </script> -->
+    <!-- <script>
+    class AsyncSchedule {
+      constructor(max) {
+        this.max = max;
+        this.quene = [];
+        this.running = 0;
+      }
+      add(promisefn) {
+        return new Promise((resolve, reject) => {
+          const execute = () => {
+            try {
+              this.running++;
+              promisefn();
+              resolve();
+            } catch (e) {
+              reject(e);
+            } finally {
+              this.running--;
+              this.next();
+            }
+          };
+          if (this.running < this.max) {
+            execute();
+          } else {
+            this.quene.push(execute);
+          }
+        });
+      }
+      next() {
+        if (this.running < this.max && this.quene.length > 0) {
+          this.quene.shift()();
+        }
+      }
+    }
+  </script> -->
+    <!-- <script>
+    function deepClone(obj) {
+      if (typeof obj !== "object") return obj;
+      if (obj === null) return obj;
+      if (typeof obj === "date") return new Date(obj);
+      if (obj instanceof Map) return new Map(obj);
+      if (obj instanceof Set) return new Set(obj);
+      if (typeof obj === "regex") return new RegExp(obj);
+      const isArray = Array.isArray(obj);
+      const init = isArray ? [] : {};
+      for (let key in obj) {
+        init[key] = deepClone(obj[key]);
+      }
+      return init;
+    }
+
+    function deepEqual(a, b, map = new WeakMap()) {
+      if (a === b) return true;
+      if (typeof a !== "object" || typeof b !== "object" || a == null || b == null) return false;
+
+      if (visited.get(a) === b) return true;
+      visited.set(a, b);
+
+      const keysA = Object.keys(a);
+      const keysB = Object.keys(b);
+      if (keysA.length !== keysB.length) return false;
+
+      for (let key of keysA) {
+        if (!deepEqual(a[key], b[key], visited)) return false;
+      }
+      return true;
+    }
+  </script> -->
+    <!-- <script>
+    class EventEmitter {
+      constructor() {
+        this.map = new Map();
+      }
+
+      on(eventName, fn) {
+        const fns = this.map.get(eventName) ?? [];
+        fns.push(fn);
+        this.map.set(eventName, fns);
+      }
+
+      emit(eventName, ...args) {
+        const fns = this.map.get(eventName);
+        if (!fns || !fns.length) return;
+        fns.slice().forEach((fn) => fn.apply(null, args));
+      }
+
+      once(eventName, ...args) {
+        const wrapper = (...args) => {
+          fn(...args);
+          this.off(event, wrapper);
+        };
+        this.on(event, wrapper);
+        // 实现有问题
+        // if (!this.map.has(eventName)) return;
+        // this.emit(eventName);
+        // this.off(eventName);
+      }
+
+      off(eventName, fn) {
+        if (!this.map.has(eventName)) return;
+        const fns = this.map.get(eventName);
+        if (fn) {
+          const index = fns.findIndex((i) => i === fn);
+          fns.splice(index, 1);
+        } else {
+          fns.length = 0;
+        }
+        this.map.set(eventName, fns);
+      }
+    }
+  </script> -->
+    <!-- <script>
+    function compose() {
+      const fns = Array.slice.call(arguments, 0);
+      fns.reduce(
+        (a, b) =>
+          async (...args) =>
+            a(await b(...args))
+      );
+    }
+  </script> -->
+    <!-- <script>
+    class LazyMan {
+      constructor(name) {
+        this.name = name;
+        // this.initEvent();
+      }
+
+      initEvent() {
+        new Promise((resolve, rejct) => {
+          this.resolve(resolve);
+        }).then(this.fulfilled);
+      }
+
+      sleep(time = 2) {
+        const func = () => {
+          new Promise((resolve) => {
+            setTimeout(() => {
+              console.log("等待两秒");
+              resolve();
+              this.eat();
+            }, time * 1000);
+          });
+        };
+        this.fulfilled = func;
+        return this;
+      }
+
+      eat(fruit) {
+        if (this.resolve) {
+          console.log("Eat Apple");
+        }
+        return this;
+      }
+
+      sleepFirst(time = 3) {
+        const p = (resolve) => {
+          setTimeout(() => {
+            console.log("等待三秒");
+            resolve();
+            console.log("hi, i am " + this.name);
+          }, time * 1000);
+        };
+        this.resolve = p;
+        this.initEvent();
+        return this;
+      }
+    }
+  </script> -->
+    <!-- <script>
+    // 述：有 n 阶楼梯，每次可以爬 1 或 2 阶，问有多少种不同爬法？
+    //  1 => 1
+    //  2 => 1+1 或 2
+    //  3 => 1+1+1 或 1+2 或 2+1
+    //  4 => 1+1+1+1 或 1+2+1 或 2+1+1 或 1+1+2 或 2+2
+    function methods(n) {
+      if (n <= 3) return n;
+      const dp = [];
+      for (let i = 3; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+      }
+      return dp[n];
+    }
+  </script> -->
+    <!-- <script>
+    // 给定一个数组，求最长递增子序列长度。
+    // [10,9,2,5,3,7,101,18] => 4 [2,3,5,101]
+    function getMaxLen(arr) {
+      const result = [];
+      for (let i = 0; i < arr.length; i++) {
+        if (!result.length) {
+          result.push(arr[i]);
+        } else {
+          const endIndex = result.length - 1;
+          if (arr[i] <= result[endIndex]) {
+            result[endIndex] = arr[i];
+          } else {
+            result.push(arr[i]);
+          }
+        }
+      }
+      console.log(result);
+    }
+    getMaxLen([10, 9, 2, 5, 3, 7, 101, 18]);
+  </script> -->
+    <!-- <script>
+    class LimitModule {
+      constructor(max) {
+        this.max = max;
+        this.start = 0;
+        this.quene = [];
+      }
+      add(fn, ...args) {
+        return new Promise((resolve, reject) => {
+          const func = async () => {
+            try {
+              this.start++;
+              const result = await fn(...args);
+              console.log("result", result);
+              resolve(result);
+            } catch (e) {
+              reject(e);
+            } finally {
+              this.start--;
+              this.next();
+            }
+          };
+          if (this.start < this.max) {
+            func();
+          } else {
+            const priorty = fn.priorty ?? 0;
+            const task = {
+              func,
+              priorty,
+            };
+            const index = this.quene.findIndex((item) => item.priorty < priorty);
+            if (index > -1) {
+              this.quene.splice(index, 0, task);
+            } else {
+              this.quene.push(task);
+            }
+          }
+        });
+      }
+      next() {
+        if (this.start < this.max && this.quene.length > 0) {
+          const task = this.quene.shift();
+          if (task) {
+            task.func();
+          }
+        }
+      }
+    }
+    const lm = new LimitModule(3);
+    const timeout = (n) => new Promise((resolve, reject) => setTimeout(resolve, n));
+    const task1 = () => timeout(1000).then(() => 1000);
+    const task2 = () => timeout(300).then(() => 300);
+    const task3 = () => timeout(500).then(() => 500);
+    task3.priorty = 3;
+    const task4 = () => timeout(600).then(() => 600);
+    task4.priorty = 1;
+    const task5 = () => timeout(200).then(() => 200);
+    task5.priorty = 2;
+    Promise.all([task1, task2, task3, task4, task5].map((task) => lm.add(task)));
+  </script> -->
+  </body>
+</html>
