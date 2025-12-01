@@ -1,0 +1,119 @@
+1. 在 IM 聊天场景中，为什么必须使用虚拟列表？
+答案：
+聊天记录通常成百上千条，如果全部渲染 DOM，会导致：
+首屏渲染极慢
+滚动卡顿（大量节点触发 Layout & Paint）
+内存占用过高
+虚拟列表只渲染可视区域的几十条消息，从而保证：
+高性能
+流畅滚动
+较低内存开销
+
+2. 为什么 IM 的虚拟列表是“不定高虚拟列表”？
+答案：
+因为消息内容多变，不同消息高度完全不同，例如：
+文本（短/长）
+图片
+视频
+引用消息
+无法提前预估每条消息的高度，因此只能在渲染后由实际高度驱动。
+
+3. 虚拟列表的核心思路是什么？
+答案：
+只渲染可视区对应的数据
+用 padding（顶部和底部占位）模拟完整高度
+用 scrollTop + 容器高度计算 startIndex / endIndex
+
+4. 什么是 buffer？有什么作用？
+答案：
+buffer 是可视区上下额外渲染的条数，用来避免滚动时出现白屏闪烁：
+减少频繁计算和重绘
+提高用户体验
+
+6. 如何通过 scrollTop 找到渲染起始的 startIndex？
+答案：
+在 prefixHeights 中使用 二分查找
+
+7. 为什么不用遍历 prefixHeights？
+答案：
+因为消息量大时（几千条），逐项遍历是 O(n)，会导致滚动卡顿。
+二分查找 O(log n) 可以保证高帧率滚动体验。
+
+9. 如何处理渲染消息真实高度后前缀不准确的问题？
+答案：
+每条消息渲染后，MessageCard 会触发 onMsgHeight 回调：
+更新真实高度
+修正 prefixHeights
+调用 updatePadding 修正布局
+这样虚拟列表会自动刷新且不会出现跳动。
+
+10. 图片/视频加载导致高度变化，如何避免跳动？
+答案：
+MessageCard 内监听元素 resize（如 ResizeObserver）
+高度发生变化时调用 onMsgHeight
+prefixHeights 与 padding 自动更新
+不影响 scrollTop，列表稳定无跳动
+
+11. IM 场景中向上加载历史消息为什么容易“跳屏”？
+原因：
+加载历史消息后：
+新内容插入顶部
+scrollHeight 增加，但 scrollTop 未同步
+导致页面位置错乱，出现“跳屏”现象
+
+12. 如何避免向上加载历史消息时跳屏？（核心面试点）
+答案：
+使用 scrollHeight 差值恢复法。
+流程：
+加载前记录 prevScrollHeight
+插入消息 + nextTick 渲染
+用差值恢复原位置：
+diff = el.scrollHeight - prevScrollHeight
+el.scrollTop = diff
+
+13. WebSocket 新消息插入时如何保持“在底部时自动滚动，不在底部时不打扰”？
+逻辑：
+判断是否在底部：
+isBottom = scrollTop + containerHeight >= scrollHeight - 100
+插入新消息
+nextTick 后：
+若在底部 → 自动 scrollToBottom
+若不在底部 → 什么都不动（不打扰用户）
+
+14. 使用 Vue/React 实现时有什么性能需要注意？
+答案：
+避免整个 messages 重新计算（要用 key 和稳定引用）
+控制 DOM 数量（渲染 20～50 条即可）
+滚动事件加 throttle（50ms）
+插入新消息时避免滚动抖动（不管理 prefix 不一致）
+
+15. prefixHeights 更新频繁会不会很耗性能？
+答案：
+不会，因为：
+每次只更新某一条的高度
+prefixHeights 是 O(n) 线性更新，但消息量通常几千条以内可接受
+可以进一步优化为“差分更新”或“分段树结构”
+对于 IM，这种线性更新性能足够。
+
+7. 虚拟列表如何处理“跳转到指定消息”需求？
+
+步骤：
+找到该消息 index
+使用 prefixHeights[index] 获取相对高度
+自动滚动到指定 scrollTop
+只需要 O(log n)（二分查找）+ O(1)。
+
+19. 发送消息失败/重发时会影响虚拟列表吗？
+不会。
+因为虚拟列表完全基于消息高度来计算：
+修改状态不会改变 prefix
+DOM 渲染高度不变
+虚拟滚动稳定
+
+20. 你在 IM 虚拟列表里做过哪些特别的优化？（加分题）
+你可以回答：
+使用 ResizeObserver 动态监听元素高度
+使用 IntersectionObserver 判断用户是否在底部
+使用 requestIdleCallback 延迟 prefix 更新
+所有计算都 O(log n)，保持高性能
+支持几千条消息无卡顿

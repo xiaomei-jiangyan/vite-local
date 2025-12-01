@@ -36,7 +36,6 @@ const store = useRoomStore();
 // =======================
 // 1. 虚拟滚动参数
 // =======================
-const estiHeight = 80; // 预估高度
 const scrollTop = ref(0);
 const containerHeight = ref(0);
 
@@ -45,8 +44,6 @@ const total = computed(() => store.messages.value.length);
 
 // 可视数量
 const buffer = 5;
-
-// const visibleCount = computed(() => Math.ceil(containerHeight.value / estiHeight) + buffer * 2);
 
 const startIndex = computed(() => {
   const start = Math.max(0, findRealStartIndex(scrollTop.value) - buffer);
@@ -178,6 +175,18 @@ async function loadHistory() {
 // =======================
 // 6. 初始化
 // =======================
+const scrollSmoothToBottom = () => {
+  const current = Date.now();
+  const scroll = () => {
+    const height = wrapper.value.scrollHeight;
+    wrapper.value.scrollTop = height;
+    if (Date.now() - current <= 4000) {
+      requestAnimationFrame(scroll);
+    }
+  };
+  requestAnimationFrame(scroll);
+};
+
 onMounted(() => {
   const el = wrapper.value;
   containerHeight.value = el.clientHeight;
@@ -199,9 +208,10 @@ onMounted(() => {
   //     });
   //   }
   // });
-  setTimeout(() => {
-    el.scrollTop = el.scrollHeight;
-  }, 250);
+  scrollSmoothToBottom();
+  // setTimeout(() => {
+  //   el.scrollTop = el.scrollHeight;
+  // }, 2000);
 });
 </script>
 

@@ -85,10 +85,15 @@ onMounted(() => {
       const lastIndex = total.length - 1;
       // total[lastIndex] is the top offset of last item; need its height to compute full content height
       const lastMsg = roomStore.groupMessage[lastIndex];
-      const lastHeight = lastMsg ? roomStore.msgHeight.get(lastMsg.msgId) ?? estiHeight : estiHeight;
+      const lastHeight = lastMsg
+        ? roomStore.msgHeight.get(lastMsg.msgId) ?? estiHeight
+        : estiHeight;
       const fullHeight = (total[lastIndex] ?? 0) + lastHeight;
       // scroll so the bottom of content aligns with bottom of container
-      const target = Math.max(0, fullHeight - (wrapper.value.clientHeight || containerHeight.value));
+      const target = Math.max(
+        0,
+        fullHeight - (wrapper.value.clientHeight || containerHeight.value)
+      );
       console.log(111, "initial scroll target", target, "fullHeight", fullHeight);
       wrapper.value.scrollTop = target;
 
