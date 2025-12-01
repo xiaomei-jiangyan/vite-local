@@ -24,7 +24,7 @@
 
 <script setup>
 // 正确实现不定高虚拟列表效果
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, onUnmounted } from "vue";
 import MessageCard from "./MessageCard.vue";
 import { useRoomStore } from "./store";
 import { throttle } from "@/utils/index";
@@ -255,6 +255,9 @@ onMounted(() => {
   // setTimeout(() => {
   //   el.scrollTop = el.scrollHeight;
   // }, 2000);
+});
+onUnmounted(() => {
+  close();
 });
 </script>
 

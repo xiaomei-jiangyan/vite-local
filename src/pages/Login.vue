@@ -40,7 +40,7 @@
           />
         </template>
       </AField>
-      <div class="submit" @click="handleSubmit">提交</div>
+      <div class="submit" @click="handleSubmit">登录</div>
     </AForm>
   </div>
 </template>

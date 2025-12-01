@@ -1,7 +1,7 @@
 <template>
   <div class="app-wrapper safe-area" role="region" aria-label="App safe area">
     <div v-if="user.isLogin" class="app-navbar nav-bar">
-      <Header :title="route.meta.title" />
+      <Header :title="route.meta.title" :icon="route.meta.icon" />
     </div>
     <main
       class="content scrollable"

@@ -12,7 +12,7 @@ const props = defineProps({
   scripts: {
     type: Array,
     default: () => [
-      "//at.alicdn.com/t/c/font_5073570_lzc2z1rkzh.js", // 你的 iconfont symbol 地址
+      "//at.alicdn.com/t/c/font_5073570_810c6dk471.js", // 你的 iconfont symbol 地址
     ],
   },
 });
@@ -20,8 +20,9 @@ onMounted(() => {
   loadScript();
 });
 
+const loaded = new Set();
+
 function loadScript() {
-  const loaded = new Set();
   return (function () {
     props.scripts.forEach((src) => {
       if (loaded.has(src)) return;

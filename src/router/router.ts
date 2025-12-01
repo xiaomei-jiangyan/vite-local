@@ -46,6 +46,7 @@ export const pageRoutes = [
     meta: {
       title: "Room",
       keepAlive: true,
+      icon: "back",
       tabbar: false,
       requireAuth: true,
     },
@@ -57,6 +58,7 @@ export const pageRoutes = [
     meta: {
       title: "Group",
       keepAlive: true,
+      icon: "back",
       tabbar: false,
       requireAuth: true,
     },
@@ -68,6 +70,7 @@ export const pageRoutes = [
     meta: {
       title: "VirtualGroup",
       keepAlive: true,
+      icon: "back",
       tabbar: false,
       requireAuth: true,
     },

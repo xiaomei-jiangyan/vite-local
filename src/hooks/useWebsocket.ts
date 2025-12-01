@@ -51,7 +51,7 @@ export function useWebSocket(url: string, options?: WebSocketOptions) {
     // WebSocket 连接关闭时
     ws.value.onclose = (event) => {
       isOpen.value = false;
-      reconnect();
+      // reconnect();
       options?.onClose?.(event);
       console.log("WebSocket disconnected");
     };
