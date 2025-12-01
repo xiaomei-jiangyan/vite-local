@@ -8,7 +8,7 @@
       <div :style="{ height: topPadding + 'px' }"></div>
 
       <!-- 真正渲染的可视区消息 -->
-      <div class="item-container">
+      <div class="item-container" @click="() => handleScrollToMsg()">
         <template v-for="msg in visibleList" :key="msg.msgId">
           <MessageCard :msg="msg" @updateHeight="onMsgHeight" />
         </template>
@@ -17,6 +17,8 @@
       <!-- 底部占位 -->
       <div :style="{ height: bottomPadding + 'px' }"></div>
     </div>
+    <button class="go-button" @click="handleGo">Go 86</button>
+    <!-- <SendInput @send="handleSendMessage" /> -->
   </div>
 </template>
 
@@ -26,6 +28,7 @@ import { ref, computed, onMounted, nextTick } from "vue";
 import MessageCard from "./MessageCard.vue";
 import { useRoomStore } from "./store";
 import { throttle } from "@/utils/index";
+import SendInput from "../Room/SendInput.vue";
 import { useWebSocket } from "@/hooks/useWebsocket";
 
 const wrapper = ref(null);
@@ -60,6 +63,44 @@ const endIndex = computed(() => {
 const visibleList = computed(() => {
   return store.messages.value.slice(startIndex.value, endIndex.value);
 });
+
+const sleep = (delay = 300) => {
+  return new Promise((r) => setTimeout(r, delay));
+};
+
+const handleGo = () => {
+  handleScrollToMsg("86_krwhxmjh");
+};
+
+const handleScrollToMsg = async (msgId = "86_krwhxmjh") => {
+  let index = store.messages.value.findIndex((item) => item.msgId === msgId);
+
+  while (index === -1 && hasMore.value) {
+    // 目标消息未加载，拉取历史消息
+    await loadHistory();
+    // 等待异步流
+    await sleep(600);
+    index = store.messages.value.findIndex((msg) => msg.msgId === msgId);
+  }
+
+  console.log(111, "index", index);
+
+  if (index > -1) {
+    const scrollTop = store.prefixHeights.value[index];
+    const target = scrollTop;
+    wrapper.value.scrollTop = target - 200;
+    // scrollSmoothToTarget(target, "up");
+    await nextTick();
+
+    // 高度异步计算后，再跳第二次
+    requestAnimationFrame(() => {
+      const scrollTop = store.prefixHeights.value[index];
+      const target = scrollTop;
+      wrapper.value.scrollTop = target - 200;
+      // scrollSmoothToTarget(target, "up");
+    });
+  }
+};
 
 function findRealStartIndex(scrollTop) {
   const arr = store.prefixHeights.value;
@@ -175,12 +216,14 @@ async function loadHistory() {
 // =======================
 // 6. 初始化
 // =======================
-const scrollSmoothToBottom = () => {
-  const current = Date.now();
+const scrollSmoothToTarget = (target = wrapper.value?.scrollHeight, direction = "down") => {
+  let currentTop = wrapper.value?.scrollTop ?? 0;
   const scroll = () => {
-    const height = wrapper.value.scrollHeight;
-    wrapper.value.scrollTop = height;
-    if (Date.now() - current <= 4000) {
+    direction === "down" ? (currentTop += 80) : (currentTop -= 80);
+    if (wrapper.value) wrapper.value.scrollTop = currentTop;
+    const condition =
+      direction === "down" ? currentTop <= target + 200 : currentTop >= target - 200;
+    if (condition) {
       requestAnimationFrame(scroll);
     }
   };
@@ -208,7 +251,7 @@ onMounted(() => {
   //     });
   //   }
   // });
-  scrollSmoothToBottom();
+  scrollSmoothToTarget(10000);
   // setTimeout(() => {
   //   el.scrollTop = el.scrollHeight;
   // }, 2000);
@@ -225,6 +268,7 @@ onMounted(() => {
 
 .lists-wrapper {
   position: relative;
+  /* padding-bottom: calc(80px + env(safe-area-inset-bottom, 0)); */
 }
 
 .item-container {
@@ -235,5 +279,18 @@ onMounted(() => {
   text-align: center;
   padding: 0.5rem 0;
   color: #888;
+}
+.go-button {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0));
+  right: 20px;
+  border-radius: 10px;
+  padding: 5px 8px;
+  opacity: 0.8;
+  background: #1e883e;
+  width: 120px;
+  height: 34px;
+  border: none;
+  color: #fff;
 }
 </style>
