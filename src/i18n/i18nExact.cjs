@@ -79,7 +79,9 @@ const pattern = /\.(vue|ts|tsx|js|jsx)$/;
 
 const CHINESE_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uff01-\uff5e\u3000-\u303f]+/;
 
-const excludes = ["node_modules", ".git", "main.js", "src/i18n/", "src/locales/"];
+const excludes = SRC_DIR.includes("src/i18n")
+  ? ["node_modules", ".git", "main.js", "src/locales/"]
+  : ["node_modules", ".git", "main.js", "src/i18n/", "src/locales/"];
 
 const relativePathKey = (file) => {
   const rel = path.relative(SRC_DIR, file).replace(/\\/g, "/");
@@ -121,6 +123,9 @@ const exactVueTemplate = (path, templateContent) => {
       if (text && CHINESE_RE.test(text)) {
         const idx = (zhPool.indexMap[path].counter += 1);
         const { parts, filename } = relativePathKey(path);
+        // if (filename === "test") {
+        //   console.log(idx, zhPool.data);
+        // }
         writeNested(zhPool.data, parts, filename, idx, text);
         const key = [...parts, filename, String(idx)].join(".");
         const replacement = node.content.replace(text, `{{$t('${key}')}}`);
@@ -136,6 +141,9 @@ const exactVueTemplate = (path, templateContent) => {
             const { parts, filename } = relativePathKey(path);
             // 保存 原始 val（不 trim） 以便更精确替换
             writeNested(zhPool.data, parts, filename, idx, val);
+            // if (val.includes("私人聊天")) {
+            //   console.log(zhPool.data);
+            // }
             const key = [...parts, filename, String(idx)].join(".");
             // 将静态属性值替换为 Mustache 表达式（开发者需注意：可能需要变为 :attr binding）
             // 这里我们直接把 value 内容替换为 {{$t('key')}}（保守）
@@ -341,6 +349,7 @@ const readAllFile = (files) => {
       fs.writeFileSync(file, newTemplate, "utf-8");
     }
   });
+  console.log("ZH_JSON", ZH_JSON);
   fs.writeFileSync(ZH_JSON, JSON.stringify(zhPool.data, null, 2));
 };
 
