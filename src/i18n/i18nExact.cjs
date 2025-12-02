@@ -80,8 +80,8 @@ const pattern = /\.(vue|ts|tsx|js|jsx)$/;
 const CHINESE_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uff01-\uff5e\u3000-\u303f]+/;
 
 const excludes = SRC_DIR.includes("src/i18n")
-  ? ["node_modules", ".git", "main.js", "src/locales/"]
-  : ["node_modules", ".git", "main.js", "src/i18n/", "src/locales/"];
+  ? ["node_modules", ".git", "main.js", "src/locales/", "src/i18n/index.ts"]
+  : ["node_modules", ".git", "main.js", "src/i18n/", "src/i18n/index.ts", "src/locales/"];
 
 const relativePathKey = (file) => {
   const rel = path.relative(SRC_DIR, file).replace(/\\/g, "/");
@@ -107,11 +107,12 @@ const writeNested = (original, parts, filename, idx, text) => {
   if (!Object.values(current[filename]).includes(text)) {
     current[filename][String(idx)] = text;
   }
+  console.log("current", current);
   return original;
 };
 
-const exactVueTemplate = (path, templateContent) => {
-  const ast = vueBaseParse(templateContent);
+const exactVueTemplate = async (path, templateContent) => {
+  const ast = await vueBaseParse(templateContent);
   const replacements = [];
 
   if (!zhPool.indexMap[path]) zhPool.indexMap[path] = { counter: 0, records: [] };
@@ -123,9 +124,6 @@ const exactVueTemplate = (path, templateContent) => {
       if (text && CHINESE_RE.test(text)) {
         const idx = (zhPool.indexMap[path].counter += 1);
         const { parts, filename } = relativePathKey(path);
-        // if (filename === "test") {
-        //   console.log(idx, zhPool.data);
-        // }
         writeNested(zhPool.data, parts, filename, idx, text);
         const key = [...parts, filename, String(idx)].join(".");
         const replacement = node.content.replace(text, `{{$t('${key}')}}`);
@@ -141,9 +139,6 @@ const exactVueTemplate = (path, templateContent) => {
             const { parts, filename } = relativePathKey(path);
             // 保存 原始 val（不 trim） 以便更精确替换
             writeNested(zhPool.data, parts, filename, idx, val);
-            // if (val.includes("私人聊天")) {
-            //   console.log(zhPool.data);
-            // }
             const key = [...parts, filename, String(idx)].join(".");
             // 将静态属性值替换为 Mustache 表达式（开发者需注意：可能需要变为 :attr binding）
             // 这里我们直接把 value 内容替换为 {{$t('key')}}（保守）
@@ -277,12 +272,12 @@ const exactJSTemplate = async (path, templateContent, applyScripts, lang) => {
   return `import { i18n } from "@/i18n/index";\n` + formatted + "\n";
 };
 
-const readAllFile = (files) => {
-  files.forEach(async (file) => {
+const readAllFile = async (files) => {
+  for (const file of files) {
     const ext = path.extname(file).toLowerCase();
     const content = fs.readFileSync(file, "utf-8");
     if (ext === ".vue") {
-      const sfc = SFCParse(content);
+      const sfc = await SFCParse(content);
       const templateBlock = sfc.descriptor.template;
       const scriptBlock = sfc.descriptor.script || sfc.descriptor.scriptSetup;
       let finalScript = null;
@@ -307,8 +302,8 @@ const readAllFile = (files) => {
         );
       }
       if (templateBlock && templateBlock.content) {
-        const replacements = exactVueTemplate(file, templateBlock.content);
-        const newTemplate = replaceAfterAST(
+        const replacements = await exactVueTemplate(file, templateBlock.content);
+        const newTemplate = await replaceAfterAST(
           templateBlock.content,
           replacements.map((r) => ({ original: r.original, replacement: r.replacement }))
         );
@@ -348,8 +343,7 @@ const readAllFile = (files) => {
       const newTemplate = await exactJSTemplate(file, content, APPLY_SCRIPTS);
       fs.writeFileSync(file, newTemplate, "utf-8");
     }
-  });
-  console.log("ZH_JSON", ZH_JSON);
+  }
   fs.writeFileSync(ZH_JSON, JSON.stringify(zhPool.data, null, 2));
 };
 
