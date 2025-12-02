@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n/index";
 let a = 1;
 const b = [];
 a = 5;
@@ -5,5 +6,4 @@ a = 5;
 setTimeout(() => {
   // console.log('test', a, b)
 }, 1000);
-
 export { a, b };

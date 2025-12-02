@@ -40,17 +40,17 @@
 // node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales
 function scanFiles(dir, pattern, filelist = []) {
   const files = fs.readdirSync(dir);
-  for(let i=0; i<files.length;i++){
+  for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    if (excludes.some(pattern => filePath.includes(pattern))) continue;
+    if (excludes.some((pattern) => filePath.includes(pattern))) continue;
     if (stat.isDirectory()) {
       scanFiles(filePath, pattern, filelist);
     } else if (stat.isFile() && pattern.test(filePath)) {
       filelist.push(filePath);
     }
-  });
+  }
   return filelist;
 }
 
@@ -79,7 +79,7 @@ const pattern = /\.(vue|ts|tsx|js|jsx)$/;
 
 const CHINESE_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uff01-\uff5e\u3000-\u303f]+/;
 
-const excludes = ["node_modules", ".git", "main.js", "src/i18n/"];
+const excludes = ["node_modules", ".git", "main.js", "src/i18n/", "src/locales/"];
 
 const relativePathKey = (file) => {
   const rel = path.relative(SRC_DIR, file).replace(/\\/g, "/");
@@ -97,7 +97,7 @@ const zhPool = {
 };
 const writeNested = (original, parts, filename, idx, text) => {
   let current = original;
-  for (let key in parts) {
+  for (let key of parts) {
     if (!current[key]) current[key] = {};
     current = current[key];
   }
@@ -317,11 +317,13 @@ const readAllFile = (files) => {
       let result = "";
       // Build list of blocks to replace; use the actual blocks we inspected earlier
       const replaceBlocks = [];
-      if (templateBlock) replaceBlocks.push({ block: templateBlock, newBlock: finalTemplate });
-      if (scriptBlock) replaceBlocks.push({ block: scriptBlock, newBlock: finalScript });
+      if (templateBlock)
+        replaceBlocks.push({ block: templateBlock, newBlock: finalTemplate, offset: 11 });
+      if (scriptBlock) replaceBlocks.push({ block: scriptBlock, newBlock: finalScript, offset: 9 });
 
       replaceBlocks.sort((a, b) => a.block.loc.start.offset - b.block.loc.start.offset);
-      const end = content.slice(replaceBlocks[1].block.loc.end.offset + 9);
+      const endBlock = replaceBlocks[replaceBlocks.length - 1];
+      const end = endBlock ? content.slice(endBlock.block.loc.end.offset + endBlock.offset) : "";
       for (const { block, newBlock } of replaceBlocks) {
         result += newBlock;
       }
