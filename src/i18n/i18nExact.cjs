@@ -107,8 +107,6 @@ const writeNested = (original, parts, filename, idx, text) => {
   if (!Object.values(current[filename]).includes(text)) {
     current[filename][String(idx)] = text;
   }
-  console.log("current", current);
-  return original;
 };
 
 const exactVueTemplate = async (path, templateContent) => {
@@ -272,6 +270,13 @@ const exactJSTemplate = async (path, templateContent, applyScripts, lang) => {
   return `import { i18n } from "@/i18n/index";\n` + formatted + "\n";
 };
 
+function replaceBlock(content, block, newBlock) {
+  const start = block.loc.start.offset;
+  const end = block.loc.end.offset;
+
+  return content.slice(0, start) + newBlock + content.slice(end);
+}
+
 const readAllFile = async (files) => {
   for (const file of files) {
     const ext = path.extname(file).toLowerCase();
@@ -294,7 +299,8 @@ const readAllFile = async (files) => {
             return v === true ? `${k}` : `${k}="${v}"`;
           })
           .join(" ");
-        finalScript = `<script${attrsStr ? ` ${attrsStr}` : ""}>\n${newScript}\n</script>`;
+        // finalScript = `<script${attrsStr ? ` ${attrsStr}` : ""}>\n${newScript}\n</script>`;
+        finalScript = `\n${newScript}\n`;
       } else if (sfc.descriptor.script) {
         finalScript = content.slice(
           sfc.descriptor.script.loc.start.offset,
@@ -309,7 +315,8 @@ const readAllFile = async (files) => {
         );
         // include the <template> wrapper so we replace the whole block
         const tLang = templateBlock.lang ? ` lang="${templateBlock.lang}"` : "";
-        finalTemplate = `<template${tLang}>\n${newTemplate}\n</template>`;
+        // finalTemplate = `<template${tLang}>\n${newTemplate}\n</template>`;
+        finalTemplate = `\n${newTemplate}\n`;
       } else if (sfc.descriptor.template) {
         finalTemplate = content.slice(
           sfc.descriptor.template.loc.start.offset,
@@ -317,20 +324,34 @@ const readAllFile = async (files) => {
         );
       }
 
-      let result = "";
-      // Build list of blocks to replace; use the actual blocks we inspected earlier
-      const replaceBlocks = [];
-      if (templateBlock)
-        replaceBlocks.push({ block: templateBlock, newBlock: finalTemplate, offset: 11 });
-      if (scriptBlock) replaceBlocks.push({ block: scriptBlock, newBlock: finalScript, offset: 9 });
+      // let result = "";
+      // // Build list of blocks to replace; use the actual blocks we inspected earlier
+      // const replaceBlocks = [];
+      // if (templateBlock)
+      //   replaceBlocks.push({ block: templateBlock, newBlock: finalTemplate, offset: 11 });
+      // if (scriptBlock) replaceBlocks.push({ block: scriptBlock, newBlock: finalScript, offset: 9 });
 
-      replaceBlocks.sort((a, b) => a.block.loc.start.offset - b.block.loc.start.offset);
-      const endBlock = replaceBlocks[replaceBlocks.length - 1];
-      const end = endBlock ? content.slice(endBlock.block.loc.end.offset + endBlock.offset) : "";
-      for (const { block, newBlock } of replaceBlocks) {
-        result += newBlock;
-      }
-      result += end;
+      // replaceBlocks.sort((a, b) => a.block.loc.start.offset - b.block.loc.start.offset);
+      // const endBlock = replaceBlocks[replaceBlocks.length - 1];
+      // const end = endBlock ? content.slice(endBlock.block.loc.end.offset + endBlock.offset) : "";
+      // for (const { block, newBlock } of replaceBlocks) {
+      //   result += newBlock;
+      // }
+      // result += end;
+
+      let result = content;
+
+      const blocks = [];
+      if (templateBlock)
+        blocks.push({ block: templateBlock, newCode: finalTemplate, endOffset: 11 });
+      if (scriptBlock) blocks.push({ block: scriptBlock, newCode: finalScript, endOffset: 9 });
+
+      blocks
+        .sort((a, b) => b.block.loc.start.offset - a.block.loc.start.offset)
+        .forEach(({ block, newCode }) => {
+          result = replaceBlock(result, block, newCode);
+        });
+
       let formatted;
       try {
         formatted = await prettier.format(result, { parser: "vue" });
