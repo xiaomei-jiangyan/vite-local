@@ -1,20 +1,21 @@
 <template>
   <div class="community-page">
-    <p title="标题">这是中文消息，哈哈哈哈</p>
+    <p title="{{$t('Community.3')}}">{{ $t("Community.4") }}</p>
     <h1>Community Page</h1>
     <p>Welcome to the community page!</p>
     <p>{{ text }}</p>
-    <button title="私人聊天" class="button" @click="goRoom">Chat</button>
+    <button title="{{$t('Community.5')}}" class="button" @click="goRoom">Chat</button>
     <button class="button" @click="goGroup">Group</button>
-    <p>我是 {{ varible }},你是谁呀</p>
+    <p>{{ $t("Community.6") }} {{ varible }}{{ $t("Community.7") }}</p>
   </div>
 </template>
 <script setup>
+import { i18n } from "@/i18n/index";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const text = ref("");
-const varible = "奇迹温暖";
+const varible = i18n.global.t("Community.1");
 
 defineOptions({
   name: "Community",
@@ -30,7 +31,7 @@ const goGroup = () => {
 };
 
 onMounted(() => {
-  text.value = `你好，这是${varible}社区生活!!!欢迎您！`;
+  text.value = i18n.global.t("Community.2", { _0: varible });
 });
 </script>
 <style scoped>

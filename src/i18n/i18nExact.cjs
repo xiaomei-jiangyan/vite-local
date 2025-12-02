@@ -35,14 +35,16 @@
 //   '25'
 // ])
 
-//node src/i18n/i18nExact.cjs --src=src/i18n --apply-scripts 将在src/i18n文件夹下运行成功
+//node src/i18n/i18nExact.cjs --src=src/i18n --apply-scripts --out=src/i18n 将在src/i18n文件夹下运行成功
 
 // node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales
 function scanFiles(dir, pattern, filelist = []) {
   const files = fs.readdirSync(dir);
-  files.forEach((file) => {
+  for(let i=0; i<files.length;i++){
+    const file = files[i];
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
+    if (excludes.some(pattern => filePath.includes(pattern))) continue;
     if (stat.isDirectory()) {
       scanFiles(filePath, pattern, filelist);
     } else if (stat.isFile() && pattern.test(filePath)) {
@@ -76,6 +78,8 @@ const APPLY_SCRIPTS = Boolean(argv["apply-scripts"]);
 const pattern = /\.(vue|ts|tsx|js|jsx)$/;
 
 const CHINESE_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uff01-\uff5e\u3000-\u303f]+/;
+
+const excludes = ["node_modules", ".git", "main.js", "src/i18n/"];
 
 const relativePathKey = (file) => {
   const rel = path.relative(SRC_DIR, file).replace(/\\/g, "/");
@@ -249,12 +253,20 @@ const exactJSTemplate = async (path, templateContent, applyScripts, lang) => {
   // 生成代码并格式化（保守选择 parser）
   const out = generate(ast, { retainLines: true }).code;
   const parser = path.endsWith(".ts") || path.endsWith(".tsx") ? "typescript" : "babel";
-  const _formatted = await prettier.format(out, { parser: lang === "ts" ? "typescript" : parser });
+  let _formatted;
+  try {
+    _formatted = await prettier.format(out, {
+      parser: lang === "ts" ? "typescript" : parser,
+    });
+  } catch (e) {
+    console.warn("格式化失败，使用 fallback html parser", e.message.slice(30));
+    _formatted = await prettier.format(out, {
+      parser: "html",
+    });
+  }
   const formatted = _formatted.trim();
   // backupFile(path);
   return `import { i18n } from "@/i18n/index";\n` + formatted + "\n";
-  // fs.writeFileSync(path, formatted + "\n", "utf-8");
-  // }
 };
 
 const readAllFile = (files) => {
@@ -265,13 +277,26 @@ const readAllFile = (files) => {
       const sfc = SFCParse(content);
       const templateBlock = sfc.descriptor.template;
       const scriptBlock = sfc.descriptor.script || sfc.descriptor.scriptSetup;
-      let newFileContent = content;
+      let finalScript = null;
+      let finalTemplate = null;
+
       if (scriptBlock && scriptBlock.content) {
         const lang = scriptBlock.lang;
-        const newTemplate = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS, lang);
-        newFileContent = newFileContent.replace(/<script([^>]*)>[\s\S]*?<\/script>/, (m, p1) => {
-          return `<script${p1}>${newTemplate}\n</script>`;
-        });
+        const newScript = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS, lang);
+        // preserve script attributes like setup, src, lang, scoped, etc.
+        const attrs = scriptBlock.attrs || {};
+        const attrsStr = Object.keys(attrs)
+          .map((k) => {
+            const v = attrs[k];
+            return v === true ? `${k}` : `${k}="${v}"`;
+          })
+          .join(" ");
+        finalScript = `<script${attrsStr ? ` ${attrsStr}` : ""}>\n${newScript}\n</script>`;
+      } else if (sfc.descriptor.script) {
+        finalScript = content.slice(
+          sfc.descriptor.script.loc.start.offset,
+          sfc.descriptor.script.loc.end.offset
+        );
       }
       if (templateBlock && templateBlock.content) {
         const replacements = exactVueTemplate(file, templateBlock.content);
@@ -279,15 +304,35 @@ const readAllFile = (files) => {
           templateBlock.content,
           replacements.map((r) => ({ original: r.original, replacement: r.replacement }))
         );
-        newFileContent = newFileContent.replace(
-          /<template([^>]*)>[\s\S]*?<\/template>/,
-          (m, p1) => {
-            return `<template${p1}>\n${newTemplate}\n</template>`;
-          }
+        // include the <template> wrapper so we replace the whole block
+        const tLang = templateBlock.lang ? ` lang="${templateBlock.lang}"` : "";
+        finalTemplate = `<template${tLang}>\n${newTemplate}\n</template>`;
+      } else if (sfc.descriptor.template) {
+        finalTemplate = content.slice(
+          sfc.descriptor.template.loc.start.offset,
+          sfc.descriptor.template.loc.end.offset
         );
       }
-      const formatted = await prettier.format(newFileContent, { parser: "vue" });
-      // console.log(111, formatted);
+
+      let result = "";
+      // Build list of blocks to replace; use the actual blocks we inspected earlier
+      const replaceBlocks = [];
+      if (templateBlock) replaceBlocks.push({ block: templateBlock, newBlock: finalTemplate });
+      if (scriptBlock) replaceBlocks.push({ block: scriptBlock, newBlock: finalScript });
+
+      replaceBlocks.sort((a, b) => a.block.loc.start.offset - b.block.loc.start.offset);
+      const end = content.slice(replaceBlocks[1].block.loc.end.offset + 9);
+      for (const { block, newBlock } of replaceBlocks) {
+        result += newBlock;
+      }
+      result += end;
+      let formatted;
+      try {
+        formatted = await prettier.format(result, { parser: "vue" });
+      } catch (e) {
+        console.warn("格式化失败，使用 fallback html parser", e.message.slice(30));
+        formatted = await prettier.format(result, { parser: "html" });
+      }
       fs.writeFileSync(file, formatted, "utf-8");
     } else {
       const newTemplate = await exactJSTemplate(file, content, APPLY_SCRIPTS);
