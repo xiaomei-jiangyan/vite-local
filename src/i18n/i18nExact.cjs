@@ -159,7 +159,7 @@ const replaceAfterAST = (input, replaces) => {
   return out;
 };
 
-const exactJSTemplate = async (path, templateContent, applyScripts) => {
+const exactJSTemplate = async (path, templateContent, applyScripts, lang) => {
   let ast;
   try {
     ast = babelParse(templateContent, {
@@ -249,7 +249,7 @@ const exactJSTemplate = async (path, templateContent, applyScripts) => {
   // 生成代码并格式化（保守选择 parser）
   const out = generate(ast, { retainLines: true }).code;
   const parser = path.endsWith(".ts") || path.endsWith(".tsx") ? "typescript" : "babel";
-  const _formatted = await prettier.format(out, { parser });
+  const _formatted = await prettier.format(out, { parser: lang === "ts" ? "typescript" : parser });
   const formatted = _formatted.trim();
   // backupFile(path);
   return `import { i18n } from "@/i18n/index";\n` + formatted + "\n";
@@ -267,7 +267,8 @@ const readAllFile = (files) => {
       const scriptBlock = sfc.descriptor.script || sfc.descriptor.scriptSetup;
       let newFileContent = content;
       if (scriptBlock && scriptBlock.content) {
-        const newTemplate = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS);
+        const lang = scriptBlock.lang;
+        const newTemplate = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS, lang);
         newFileContent = newFileContent.replace(/<script([^>]*)>[\s\S]*?<\/script>/, (m, p1) => {
           return `<script${p1}>${newTemplate}\n</script>`;
         });
