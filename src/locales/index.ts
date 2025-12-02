@@ -1,5 +1,5 @@
-import EN from "./en";
-import Zh from "./zh";
+import EN from "./en.json";
+import Zh from "./zh.json";
 
 export default {
   en: { ...EN },

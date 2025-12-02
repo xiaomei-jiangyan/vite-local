@@ -35,6 +35,9 @@
 //   '25'
 // ])
 
+//node src/i18n/i18nExact.cjs --src=src/i18n --apply-scripts 将在src/i18n文件夹下运行成功
+
+// node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales
 function scanFiles(dir, pattern, filelist = []) {
   const files = fs.readdirSync(dir);
   files.forEach((file) => {
@@ -67,7 +70,7 @@ const argv = minimist(process.argv.slice(2));
 const SRC_DIR = path.resolve(process.cwd(), argv.src || "src");
 const OUT_DIR = path.resolve(process.cwd(), argv.out || "locales");
 
-const ZH_JSON = path.join(SRC_DIR, "zh.json");
+const ZH_JSON = path.join(OUT_DIR, "zh.json");
 
 const APPLY_SCRIPTS = Boolean(argv["apply-scripts"]);
 const pattern = /\.(vue|ts|tsx|js|jsx)$/;
@@ -199,7 +202,7 @@ const exactJSTemplate = async (path, templateContent, applyScripts) => {
           if (applyScripts) {
             // 仅在简单表达式或赋值/返回/参数位置安全替换
             // 进一步的上下文检查可扩展
-            const callExp = t.callExpression(t.identifier("t"), [t.stringLiteral(key)]);
+            const callExp = t.callExpression(t.identifier("i18n.global.t"), [t.stringLiteral(key)]);
             pathNode.replaceWith(callExp);
             changed = true;
           }
@@ -214,7 +217,7 @@ const exactJSTemplate = async (path, templateContent, applyScripts) => {
           for (let i = 0; i < pathNode.node.quasis.length; i++) {
             i18nTemplate += pathNode.node.quasis[i].value.cooked;
             if (i < pathNode.node.expressions.length) {
-              i18nTemplate += `{${i}}`;
+              i18nTemplate += `{_${i}}`;
             }
           }
 
@@ -230,7 +233,7 @@ const exactJSTemplate = async (path, templateContent, applyScripts) => {
             const props = pathNode.node.expressions.map((expr, i) =>
               t.objectProperty(t.identifier(`_${i}`), expr)
             );
-            const callExp = t.callExpression(t.identifier("t"), [
+            const callExp = t.callExpression(t.identifier("i18n.global.t"), [
               t.stringLiteral(key),
               t.objectExpression(props),
             ]);
@@ -242,17 +245,16 @@ const exactJSTemplate = async (path, templateContent, applyScripts) => {
     },
   });
 
-  if (changed) {
-    // 生成代码并格式化（保守选择 parser）
-    const out = generate(ast, { retainLines: true }).code;
-    const parser = path.endsWith(".ts") || path.endsWith(".tsx") ? "typescript" : "babel";
-    const _formatted = await prettier.format(out, { parser });
-    const formatted = _formatted.trim();
-    // backupFile(path);
-    return formatted;
-    // fs.writeFileSync(path, formatted + "\n", "utf-8");
-  }
-  return;
+  // if (changed) {
+  // 生成代码并格式化（保守选择 parser）
+  const out = generate(ast, { retainLines: true }).code;
+  const parser = path.endsWith(".ts") || path.endsWith(".tsx") ? "typescript" : "babel";
+  const _formatted = await prettier.format(out, { parser });
+  const formatted = _formatted.trim();
+  // backupFile(path);
+  return `import { i18n } from "@/i18n/index";\n` + formatted + "\n";
+  // fs.writeFileSync(path, formatted + "\n", "utf-8");
+  // }
 };
 
 const readAllFile = (files) => {
@@ -263,26 +265,29 @@ const readAllFile = (files) => {
       const sfc = SFCParse(content);
       const templateBlock = sfc.descriptor.template;
       const scriptBlock = sfc.descriptor.script || sfc.descriptor.scriptSetup;
+      let newFileContent = content;
+      if (scriptBlock && scriptBlock.content) {
+        const newTemplate = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS);
+        newFileContent = newFileContent.replace(/<script([^>]*)>[\s\S]*?<\/script>/, (m, p1) => {
+          return `<script${p1}>${newTemplate}\n</script>`;
+        });
+      }
       if (templateBlock && templateBlock.content) {
         const replacements = exactVueTemplate(file, templateBlock.content);
         const newTemplate = replaceAfterAST(
           templateBlock.content,
           replacements.map((r) => ({ original: r.original, replacement: r.replacement }))
         );
-        const newFileContent = content.replace(/<template([^>]*)>[\s\S]*?<\/template>/, (m, p1) => {
-          return `<template${p1}>\n${newTemplate}\n</template>`;
-        });
-        const formatted = await prettier.format(newFileContent, { parser: "vue" });
-        fs.writeFileSync(file, formatted, "utf-8");
+        newFileContent = newFileContent.replace(
+          /<template([^>]*)>[\s\S]*?<\/template>/,
+          (m, p1) => {
+            return `<template${p1}>\n${newTemplate}\n</template>`;
+          }
+        );
       }
-      if (scriptBlock && scriptBlock.content) {
-        const newTemplate = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS);
-        const newFileContent = content.replace(/<script([^>]*)>[\s\S]*?<\/script>/, (m, p1) => {
-          return `<script${p1}>\n${newTemplate}\n</script>`;
-        });
-        const formatted = await prettier.format(newFileContent, { parser: "vue" });
-        fs.writeFileSync(file, formatted, "utf-8");
-      }
+      const formatted = await prettier.format(newFileContent, { parser: "vue" });
+      // console.log(111, formatted);
+      fs.writeFileSync(file, formatted, "utf-8");
     } else {
       const newTemplate = await exactJSTemplate(file, content, APPLY_SCRIPTS);
       fs.writeFileSync(file, newTemplate, "utf-8");
