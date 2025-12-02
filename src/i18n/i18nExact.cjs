@@ -132,6 +132,9 @@ const exactVueTemplate = async (path, templateContent) => {
       node.props.forEach((prop) => {
         if (prop.type === 6 && prop.value && prop.value.content) {
           const val = prop.value.content;
+          // if (val === "标题") {
+          //   console.log(111, "prop.value", JSON.stringify(prop));
+          // }
           if (val && CHINESE_RE.test(val)) {
             const idx = (zhPool.indexMap[path].counter += 1);
             const { parts, filename } = relativePathKey(path);
@@ -140,8 +143,15 @@ const exactVueTemplate = async (path, templateContent) => {
             const key = [...parts, filename, String(idx)].join(".");
             // 将静态属性值替换为 Mustache 表达式（开发者需注意：可能需要变为 :attr binding）
             // 这里我们直接把 value 内容替换为 {{$t('key')}}（保守）
-            const replacement = val.replace(val, `{{$t('${key}')}}`);
-            replacements.push({ original: val, replacement, key, text: val, attrName: prop.name });
+            const replaceText = prop.loc?.source || val;
+            const replacement = replaceText.replace(val, `$t('${key}')`);
+            replacements.push({
+              original: replaceText,
+              replacement: ":" + replacement,
+              key,
+              text: val,
+              attrName: prop.name,
+            });
           }
         }
       });
