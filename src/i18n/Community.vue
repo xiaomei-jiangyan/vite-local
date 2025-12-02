@@ -1,10 +1,12 @@
 <template>
   <div class="community-page">
+    <p title="标题">这是中文消息，哈哈哈哈</p>
     <h1>Community Page</h1>
     <p>Welcome to the community page!</p>
     <p>{{ text }}</p>
-    <button class="button" @click="goRoom">Chat</button>
+    <button title="私人聊天" class="button" @click="goRoom">Chat</button>
     <button class="button" @click="goGroup">Group</button>
+    <p>我是 {{ varible }},你是谁呀</p>
   </div>
 </template>
 <script setup>

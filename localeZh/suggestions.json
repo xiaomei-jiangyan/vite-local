@@ -1,0 +1,53 @@
+[
+  {
+    "file": "/Users/yan/Desktop/vite-app/src/utils/index.ts",
+    "loc": {
+      "start": {
+        "line": 23,
+        "column": 10,
+        "index": 527
+      },
+      "end": {
+        "line": 23,
+        "column": 19,
+        "index": 536
+      }
+    },
+    "original": "这是一条新消息",
+    "suggestion": "t('utils.index.1')"
+  },
+  {
+    "file": "/Users/yan/Desktop/vite-app/src/utils/index.ts",
+    "loc": {
+      "start": {
+        "line": 25,
+        "column": 25,
+        "index": 564
+      },
+      "end": {
+        "line": 25,
+        "column": 35,
+        "index": 574
+      }
+    },
+    "original": "`${a}, 收到`",
+    "suggestion": "t('utils.index.2', { _0: a })"
+  },
+  {
+    "file": "/Users/yan/Desktop/vite-app/src/utils/index.ts",
+    "loc": {
+      "start": {
+        "line": 26,
+        "column": 24,
+        "index": 600
+      },
+      "end": {
+        "line": 26,
+        "column": 32,
+        "index": 608
+      }
+    },
+    "original": "你好，我是尘",
+    "suggestion": "t('utils.index.3')"
+  }
+]

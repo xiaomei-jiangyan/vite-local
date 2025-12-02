@@ -1,5 +1,3 @@
-import { i18n } from "@/i18n";
-
 export function debounce(fn: Function, delay: number = 500) {
   let timer: number;
   return function (...args: any[]) {
@@ -10,6 +8,14 @@ export function debounce(fn: Function, delay: number = 500) {
     }, delay);
   };
 }
+
+/**
+ *
+ * @param {} fn
+ * @param {*} interval
+ * @returns
+ * 这是注释
+ */
 
 export function throttle(fn: Function, interval: number = 500) {
   let lastTime = 0;
@@ -22,9 +28,7 @@ export function throttle(fn: Function, interval: number = 500) {
   };
 }
 
-const a: string = i18n.global.t("utils.index.1") as string;
+const a = "这是一条新消息";
 
-export const i18nText2: string = i18n.global.t("utils.index.2", { _0: a }) as string;
-export const i18nText: string = i18n.global.t("utils.index.3") as string;
-
-console.log(111, "i18nText", i18nText2);
+export const i18nText2 = `${a}, 收到`;
+export const i18nText = "你好，我是尘";
