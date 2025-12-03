@@ -51,7 +51,7 @@ let diff = "";
 for (const key of allKeys) {
   const _zh = zh[key] || "",
     _en = en[key] || "",
-    _jp = j[key] || "";
+    _jp = jp[key] || "";
   if (!_zh) diff += `\n中文${key}导出无值，请补充\n`;
   if (!_en) diff += `\n英文${key}导出无值，请补充\n`;
   if (!_jp) diff += `\n日文${key}导出无值，请补充\n`;
