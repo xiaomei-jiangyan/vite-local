@@ -1,0 +1,18 @@
+[
+  ["Key", "ZH", "EN", "JA"],
+  ["test.1", "奇迹温暖11", "Miracle Warmth", "奇跡の温もり"],
+  [
+    "test.2",
+    "",
+    "Hello, this is {_0} Community Life!!! Welcome!",
+    "你好，这是{_0}社区生活!!!欢迎您！"
+  ],
+  ["test.3", "标题", "title", "タイトル"],
+  ["test.5", "私人聊天", "Private Chat", "プライベートチャット"],
+  ["test.6", "我是", "I am", "私は"],
+  ["test.7", ",你是谁呀", "Who are you", "ああ、あなたは誰ですか。"],
+  ["test.8", ",你", "you", "哈哈哈"],
+  ["util.1", "这是一条新消息", "This is a new message", "これは新しいニュースです"],
+  ["util.2", "{_0}, 收到", "{0}, received", "{0}、受信"],
+  ["util.3", "你好，我是尘", "Hello, I am Chen", "こんにちは、私は塵です"]
+]
