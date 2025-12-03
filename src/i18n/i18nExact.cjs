@@ -1,8 +1,3 @@
-/**
- * 提取所有文件（vue,js,ts,tsx,jsx）
- * 如果是vue 文件将运用vue-sfc先执行一遍，然后将js bable parse.
- *
- */
 // function formatArgv(args){
 //   const _slice = args.slice(2);
 //   const result = {};
@@ -35,9 +30,17 @@
 //   '25'
 // ])
 
-//node src/i18n/i18nExact.cjs --src=src/i18n --apply-scripts --out=src/i18n 将在src/i18n文件夹下运行成功
-
-// node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales
+/**
+ * 提取所有文件（vue,js,ts,tsx,jsx）
+ * 如果是vue 文件将运用vue-sfc先执行一遍，然后将js bable parse.
+ *
+ */
+/*
+运行以下命令
+将在src/i18n文件夹下运行成功;
+node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales 
+node src/i18n/i18nExact.cjs --src=src/i18n --apply-scripts --out=src/i18n  
+*/
 function scanFiles(dir, pattern, filelist = []) {
   const files = fs.readdirSync(dir);
   for (let i = 0; i < files.length; i++) {
@@ -70,7 +73,7 @@ const generate = require("@babel/generator").default;
 const argv = minimist(process.argv.slice(2));
 
 const SRC_DIR = path.resolve(process.cwd(), argv.src || "src");
-const OUT_DIR = path.resolve(process.cwd(), argv.out || "locales");
+const OUT_DIR = path.resolve(process.cwd(), argv.out || "src/locales");
 
 const ZH_JSON = path.join(OUT_DIR, "zh.json");
 
@@ -78,6 +81,7 @@ const APPLY_SCRIPTS = Boolean(argv["apply-scripts"]);
 const pattern = /\.(vue|ts|tsx|js|jsx)$/;
 
 const CHINESE_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uff01-\uff5e\u3000-\u303f]+/;
+const JAPANESE_RE = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3000-\u303F]+/g; // 日文正则
 
 const excludes = SRC_DIR.includes("src/i18n")
   ? ["node_modules", ".git", "main.js", "src/locales/", "src/i18n/index.ts"]
@@ -276,7 +280,6 @@ const exactJSTemplate = async (path, templateContent, applyScripts, lang) => {
     });
   }
   const formatted = _formatted.trim();
-  // backupFile(path);
   return `import { i18n } from "@/i18n/index";\n` + formatted + "\n";
 };
 
@@ -285,6 +288,14 @@ function replaceBlock(content, block, newBlock) {
   const end = block.loc.end.offset;
 
   return content.slice(0, start) + newBlock + content.slice(end);
+}
+
+function insertLineInScript(scriptContent, newLine) {
+  const lines = scriptContent.split("\n");
+  // 在原内容第二行插入（index=1）
+  lines.splice(1, 0, newLine);
+
+  return lines.join("\n");
 }
 
 const readAllFile = async (files) => {
@@ -300,6 +311,9 @@ const readAllFile = async (files) => {
 
       if (scriptBlock && scriptBlock.content) {
         const lang = scriptBlock.lang;
+
+        // const scriptCode = insertLineInScript(scriptBlock.content, `console.log("1111 injected");`);
+
         const newScript = await exactJSTemplate(file, scriptBlock.content, APPLY_SCRIPTS, lang);
         // preserve script attributes like setup, src, lang, scoped, etc.
         const attrs = scriptBlock.attrs || {};
@@ -309,6 +323,7 @@ const readAllFile = async (files) => {
             return v === true ? `${k}` : `${k}="${v}"`;
           })
           .join(" ");
+
         // finalScript = `<script${attrsStr ? ` ${attrsStr}` : ""}>\n${newScript}\n</script>`;
         finalScript = `\n${newScript}\n`;
       } else if (sfc.descriptor.script) {
@@ -350,7 +365,6 @@ const readAllFile = async (files) => {
       // result += end;
 
       let result = content;
-
       const blocks = [];
       if (templateBlock)
         blocks.push({ block: templateBlock, newCode: finalTemplate, endOffset: 11 });
