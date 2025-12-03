@@ -1,8 +1,9 @@
 /**
- * 扁平化嵌套 JSON
- * { test: { 1: 'xxx', 2: 'yyy' } } => { 'test.1': 'xxx', 'test.2': 'yyy' }
- 测试
+* 导入excel文件，读取内容和旧的进行对比，
+* 然后和用户确认新的变更，如果用户决定写入，则替换原来的翻译文件，并删除原来的export文件
+测试用
 node src/i18n/i18nImport.cjs --src=src/i18n --out=src/i18n
+正式用
 node src/i18n/i18nImport.cjs
 */
 
@@ -138,9 +139,12 @@ function rewriteJSON(newMap, langs) {
     console.log("用户确认重写✅");
     const rewriteData = rewriteJSON(newMap, langKeys);
     Object.keys(rewriteData).forEach((lang) => {
-      console.log(111, "lang.toLowerCase()", lang.toLowerCase(), typeof rewriteData[lang]);
       const outpath = path.join(OUT_DIR, `${lang.toLowerCase()}.json`);
       fs.writeFileSync(outpath, JSON.stringify(rewriteData[lang], null, 2), "utf-8");
+      const jsonPath = path.join(OUT_DIR, "export.json");
+      const excelPath = path.join(OUT_DIR, "export.xlsx");
+      fs.unlinkSync(excelPath);
+      fs.unlinkSync(jsonPath);
     });
   } else {
     console.log("用户取消重写当前翻译文件");
