@@ -4,7 +4,7 @@
 测试用
 node src/i18n/i18nImport.cjs --src=src/i18n --out=src/i18n
 正式用
-node src/i18n/i18nImport.cjs
+node src/i18n/i18nImport.cjs --src=src/locales --out=src/locales 
 */
 
 const fs = require("fs");

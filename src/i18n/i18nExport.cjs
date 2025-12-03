@@ -4,7 +4,7 @@
  测试
 node src/i18n/i18nExport.cjs --src=src/i18n --out=src/i18n
 正式用
-node src/i18n/i18nExport.cjs
+node src/i18n/i18nExport.cjs --src=src/locales --out=src/locales 
 */
 
 const XLSX = require("xlsx");

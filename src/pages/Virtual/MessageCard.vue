@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick, watch } from "vue";
+import { onMounted, ref, nextTick, watch, onUnmounted } from "vue";
 import * as store from "./ImageStore";
 
 const props = defineProps({
@@ -31,13 +31,17 @@ onMounted(async () => {
     imgPadding.value = `${meta.ratio * 100}%`;
     cachedSrc.value = await store.loadImage(props.msg.src);
   }
-  observer.value = new ResizeObserver((el) => {
-    const offsetHeigth = el.offsetHeight ?? 80;
-    emit("updateHeight", props.msg.msgId, offsetHeigth);
+  observer.value = new ResizeObserver((entries) => {
+    // const offsetHeigth = el.offsetHeight ?? 80;
+    const { width, height = 80 } = entries[0].contentRect;
+    emit("updateHeight", props.msg.msgId, height);
   });
   if (card.value instanceof Element) {
     observer.value.observe(card.value);
   }
+});
+onUnmounted(() => {
+  if (card.value) observer.value?.unobserve(card.value);
 });
 </script>
 
