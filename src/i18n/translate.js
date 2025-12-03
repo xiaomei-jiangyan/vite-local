@@ -30,7 +30,7 @@ export async function translateByGoogle(text, to = "en") {
     console.log("google", data);
     return data[0].map((item) => item[0]).join("");
   } catch (err) {
-    console.warn("Google 翻译失败，降级到百度:", err.message);
+    console.warn(i18n.global.t("translate.1"), err.message);
     throw err;
   }
 }

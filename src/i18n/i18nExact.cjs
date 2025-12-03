@@ -38,8 +38,10 @@
 /*
 运行以下命令
 将在src/i18n文件夹下运行成功;
-node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales 
+测试用
 node src/i18n/i18nExact.cjs --src=src/i18n --apply-scripts --out=src/i18n  
+正式用
+node src/i18n/i18nExact.cjs --apply-scripts --out=src/locales 
 */
 function scanFiles(dir, pattern, filelist = []) {
   const files = fs.readdirSync(dir);
@@ -84,8 +86,16 @@ const CHINESE_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uff01-\uff5e\u3000-\u303f]+/;
 const JAPANESE_RE = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3000-\u303F]+/g; // 日文正则
 
 const excludes = SRC_DIR.includes("src/i18n")
-  ? ["node_modules", ".git", "main.js", "src/locales/", "src/i18n/index.ts"]
-  : ["node_modules", ".git", "main.js", "src/i18n/", "src/i18n/index.ts", "src/locales/"];
+  ? [
+      // 测试用
+      "node_modules",
+      ".git",
+      "main.js",
+      "src/locales/",
+      "src/i18n/index.ts",
+      "src/i18n/translate.js",
+    ]
+  : ["node_modules", ".git", "main.js", "src/i18n/", "src/locales/"]; // 正式用
 
 const relativePathKey = (file) => {
   const rel = path.relative(SRC_DIR, file).replace(/\\/g, "/");
