@@ -99,7 +99,7 @@ function readExcel(importPath) {
   return data;
 }
 
-function reverseObj(key, val, obj = {}) {
+function reverseObj(key, val = "", obj = {}) {
   const keys = key.split(".");
   let tmp = obj;
 
@@ -127,12 +127,19 @@ function rewriteJSON(newMap, langs) {
 (async function main() {
   const exportPath = path.join(SRC_DIR, "export.json");
   const importPath = path.join(SRC_DIR, "import.xlsx");
-
   // const importJSON = JSON.parse(fs.readFileSync(importPath, "utf-8"));
   const importJSON = readExcel(importPath);
-  const exportJSON = JSON.parse(fs.readFileSync(exportPath, "utf-8"));
+  fs.writeFileSync(path.join(SRC_DIR, "import.json"), JSON.stringify(importJSON, null, 2), "utf-8");
+  let exportFileData = null;
+  try {
+    const data = fs.readFileSync(exportPath, "utf-8");
+    exportFileData = data;
+  } catch (e) {
+    console.log(e.message);
+  }
+  const exportJSON = exportFileData ? JSON.parse(exportFileData) : {};
   const res = compare(exportJSON, importJSON);
-  const confirm = await askQuestion(
+  confirm = await askQuestion(
     `当前修改项是这些: ${JSON.stringify(res, null, 2)}, 你确定要重写当前翻译文件吗？`
   );
   if (confirm) {
@@ -143,8 +150,12 @@ function rewriteJSON(newMap, langs) {
       fs.writeFileSync(outpath, JSON.stringify(rewriteData[lang], null, 2), "utf-8");
       const jsonPath = path.join(OUT_DIR, "export.json");
       const excelPath = path.join(OUT_DIR, "export.xlsx");
-      fs.unlinkSync(excelPath);
-      fs.unlinkSync(jsonPath);
+      try {
+        fs.unlinkSync(excelPath);
+        fs.unlinkSync(jsonPath);
+      } catch (e) {
+        console.log(`删除export文件失败` + e.message);
+      }
     });
   } else {
     console.log("用户取消重写当前翻译文件");
