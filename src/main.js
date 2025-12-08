@@ -4,6 +4,8 @@ import { createPinia } from "pinia";
 import "./style.css";
 import App from "./App.vue";
 import { i18n } from "@/i18n";
+import VirtualScroller from "vue3-virtual-scroller";
+import "vue3-virtual-scroller/dist/vue3-virtual-scroller.css";
 
 (function flexible(designWidth = 375, maxWidth = 1024) {
   const docEl = document.documentElement;
@@ -23,5 +25,7 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(i18n);
 app.use(router);
+
+app.use(VirtualScroller);
 
 app.mount("#app");

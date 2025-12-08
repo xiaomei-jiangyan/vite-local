@@ -146,9 +146,6 @@ const exactVueTemplate = async (path, templateContent) => {
       node.props.forEach((prop) => {
         if (prop.type === 6 && prop.value && prop.value.content) {
           const val = prop.value.content;
-          // if (val === "标题") {
-          //   console.log(111, "prop.value", JSON.stringify(prop));
-          // }
           if (val && CHINESE_RE.test(val)) {
             const idx = (zhPool.indexMap[path].counter += 1);
             const { parts, filename } = relativePathKey(path);
@@ -256,7 +253,7 @@ const exactJSTemplate = async (path, templateContent, applyScripts, lang) => {
           writeNested(zhPool.data, parts, filename, idx, i18nTemplate);
           const key = [...parts, filename, String(idx)].join(".");
 
-          const exprCodes = pathNode.node.expressions.map((e) => generate(e).code);
+          // const exprCodes = pathNode.node.expressions.map((e) => generate(e).code);
           if (applyScripts) {
             // 构造 this.t('key', { _0: expr0, _1: expr1 })
             const props = pathNode.node.expressions.map((expr, i) =>
@@ -349,7 +346,7 @@ const readAllFile = async (files) => {
           replacements.map((r) => ({ original: r.original, replacement: r.replacement }))
         );
         // include the <template> wrapper so we replace the whole block
-        const tLang = templateBlock.lang ? ` lang="${templateBlock.lang}"` : "";
+        // const tLang = templateBlock.lang ? ` lang="${templateBlock.lang}"` : "";
         // finalTemplate = `<template${tLang}>\n${newTemplate}\n</template>`;
         finalTemplate = `\n${newTemplate}\n`;
       } else if (sfc.descriptor.template) {

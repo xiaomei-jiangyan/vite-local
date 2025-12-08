@@ -29,13 +29,26 @@ onMounted(() => {
 
 function registerHeight() {
   const ro = new ResizeObserver(() => {
-    if (item.value) props.setRealHeight(props.msg.msgId, item.value.offsetHeight);
+    if (item.value) props.setRealHeight?.(props.msg.msgId, item.value.offsetHeight);
     if (item.value) roomStore.saveMsgHeight(props.msg.msgId, item.value.offsetHeight);
   });
   ro.observe(item.value);
 }
 </script>
 <style scoped>
+.msg-item {
+  animation: show 0.5s ease 0.2s;
+}
+@keyframes show {
+  30% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 .isSelf .msg-card {
   background-color: #d1e7dd;
 }

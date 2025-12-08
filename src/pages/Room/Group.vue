@@ -1,16 +1,29 @@
 <template>
-  <!-- <div class="scrollbar" ref="wrapper" :data-len="vituralLists.length">
-    <div class="loadMore" ref="loadMore">{{ hasMore ? "Load More..." : "No More Data" }}</div>
-    <div class="lists-wrapper">
-      <template v-for="msg in vituralLists" :key="msg.msgId">
-        <MessageCard
-          :msg="msg"
-          :style="{ top: msg.top + 'px', position: 'absolute', width: '100%' }"
-        />
+  <!-- <VirtualGroup :messages="roomStore.groupMessage" /> -->
+  <div class="scrollbar" ref="wrapper">
+    <div class="loadMore" ref="loadMore">{{ hasMore ? "加载更多..." : "没有更多了" }}</div>
+    <DynamicScroller
+      :items="roomStore.groupMessage"
+      :min-item-size="25"
+      key-field="msgId"
+      :emit-update="true"
+      class="scroller"
+    >
+      <template #default="{ item, index, active }">
+        <DynamicScrollerItem
+          :item="item"
+          :active="active"
+          :size-dependencies="[item.message]"
+          :data-index="index"
+          :data-active="active"
+          :title="`Click to change message ${index}`"
+          class="message"
+        >
+          <MessageCard :msg="item" />
+        </DynamicScrollerItem>
       </template>
-    </div>
-  </div> -->
-  <VirtualGroup :messages="roomStore.groupMessage" />
+    </DynamicScroller>
+  </div>
 </template>
 
 <script setup>
@@ -24,83 +37,63 @@ import { useRoomStore } from "@/store/room";
 
 defineOptions({ name: "Group" });
 
+const wrapper = ref(null);
 const roomStore = useRoomStore();
 const hasMore = ref(true);
 let pageNum = 0;
 
-const wrapper = ref(null);
-const loadMore = ref(null);
-const threshold = 200;
+const throttledScroll = throttle(onScroll, 50);
+
+async function onScroll() {
+  const el = wrapper.value;
+  if (!el) return;
+
+  // 顶部加载历史消息
+  if (el.scrollTop <= 300 && !loading.value && hasMore.value) {
+    loading.value = true;
+    loadHistory();
+  }
+}
+
+async function loadHistory() {
+  handleSendMessage();
+}
+
+onMounted(() => {
+  const el = wrapper.value;
+  // containerHeight.value = el.clientHeight;
+
+  el.addEventListener("scroll", throttledScroll);
+});
+// const wrapper = ref(null);
+// const loadMore = ref(null);
+// const threshold = 200;
 
 const loading = ref(false);
-let prevScrollHeight = 0;
-let prevScrollTop = 0;
+// let prevScrollHeight = 0;
+// let prevScrollTop = 0;
 
-const scrollTop = ref(0);
-const estiHeight = 80;
-const containerHeight = ref(0);
-const total = computed(() => roomStore.groupMessage.length);
+// const scrollTop = ref(0);
+// const estiHeight = 80;
+// const containerHeight = ref(0);
+// const total = computed(() => roomStore.groupMessage.length);
 
-const isFirstScrollToBottom = ref(true);
+// const isFirstScrollToBottom = ref(true);
 
-const visibleCount = computed(() => Math.ceil(containerHeight.value / estiHeight));
-const startIndex = computed(() => {
-  return Math.max(0, Math.floor(scrollTop.value / estiHeight) - 5);
-});
-const endIndex = computed(() => {
-  return Math.min(total.value, startIndex.value + visibleCount.value + 5);
-});
+// const visibleCount = computed(() => Math.ceil(containerHeight.value / estiHeight));
+// const startIndex = computed(() => {
+//   return Math.max(0, Math.floor(scrollTop.value / estiHeight) - 5);
+// });
+// const endIndex = computed(() => {
+//   return Math.min(total.value, startIndex.value + visibleCount.value + 5);
+// });
 
-const vituralLists = computed(() => {
-  return roomStore.groupMessage.slice(startIndex.value, endIndex.value);
-});
+// const vituralLists = computed(() => {
+//   return roomStore.groupMessage.slice(startIndex.value, endIndex.value);
+// });
 
 // attach scroll listener to trigger top-load
-onMounted(() => {
-  wrapper.value?.addEventListener("scroll", () => {
-    const _scrollTop = wrapper.value ? wrapper.value.scrollTop : 0;
-    if (_scrollTop <= threshold && hasMore.value && !loading.value) {
-      prevScrollHeight = wrapper.value ? wrapper.value.scrollHeight : 0;
-      prevScrollTop = wrapper.value ? wrapper.value.scrollTop : 0;
-      loading.value = true;
-      // handleSendMessage();
-    }
-    // if (isFirstScrollToBottom.value) {
-    scrollTop.value = _scrollTop;
-    // isFirstScrollToBottom.value = false;
-    // }
-
-    setTimeout(() => {
-      // 更新项目更新后的高度累计列表
-      updateHeigthPrefix();
-    }, 200);
-  });
-  nextTick(() => {
-    containerHeight.value = wrapper.value ? wrapper.value.clientHeight : 0;
-  });
-  setTimeout(() => {
-    if (wrapper.value) {
-      // const scrollTop
-      const total = totalHeightSum.value;
-      const lastIndex = total.length - 1;
-      // total[lastIndex] is the top offset of last item; need its height to compute full content height
-      const lastMsg = roomStore.groupMessage[lastIndex];
-      const lastHeight = lastMsg
-        ? roomStore.msgHeight.get(lastMsg.msgId) ?? estiHeight
-        : estiHeight;
-      const fullHeight = (total[lastIndex] ?? 0) + lastHeight;
-      // scroll so the bottom of content aligns with bottom of container
-      const target = Math.max(
-        0,
-        fullHeight - (wrapper.value.clientHeight || containerHeight.value)
-      );
-      console.log(111, "initial scroll target", target, "fullHeight", fullHeight);
-      wrapper.value.scrollTop = target;
-
-      scrollTop.value = target;
-    }
-  }, 300);
-});
+onMounted(() => {});
 
 // websocket handling
 const { isOpen, sendMessage, close } = useWebSocket("ws://localhost:8080?room=2", {
@@ -112,51 +105,21 @@ const { isOpen, sendMessage, close } = useWebSocket("ws://localhost:8080?room=2"
   onMessage: async (event) => {
     const msgs = JSON.parse(event.data);
     if (Array.isArray(msgs)) {
-      // prepend older messages
       roomStore.batchSave(msgs.map((msg) => ({ ...msg, isSelf: false })));
       if (msgs.length < 10) hasMore.value = false;
-      // restore scroll position by scrollHeight delta
-      nextTick(() => {
-        if (loading.value && wrapper.value) {
-          const delta = wrapper.value.scrollHeight - prevScrollHeight;
-          // wrapper.value.scrollTop = wrapper.value.scrollTop + delta;
-          loading.value = false;
-        }
-      });
     } else {
-      // append new single message
       roomStore.saveGroupMsg({ ...msgs, isSelf: false });
     }
-    await nextTick();
-    setTimeout(() => {
-      // 更新每一项的高度和估算累计高度值
-      updateHeigthPrefix();
-    }, 50);
+    loading.value = false;
   },
 });
-
-const totalHeightSum = ref([]);
-function updateHeigthPrefix() {
-  let total = [];
-  let height = 0;
-  const length = roomStore.groupMessage.length;
-  for (let i = 0; i < length; i++) {
-    const msg = roomStore.groupMessage[i];
-    msg.top = height;
-    total[i] = height;
-    const current = roomStore.msgHeight.get(msg.msgId) ?? estiHeight;
-    height = height + current;
-  }
-  console.log(111, "total", total);
-  totalHeightSum.value = total;
-}
 
 function handleSendMessage() {
   if (isOpen.value) {
     if (!hasMore.value) return;
     const msg = {
       pageSize: 30,
-      pageNum: pageNum++,
+      pageNum: ++pageNum,
       type: "query",
     };
     sendMessage(JSON.stringify(msg));
@@ -167,6 +130,9 @@ function handleSendMessage() {
 </script>
 
 <style scoped>
+.vue-recycle-scroller {
+  height: 100%;
+}
 .box {
   height: 200px;
   overflow: auto;
@@ -209,7 +175,9 @@ function handleSendMessage() {
   transform: translateY(10px);
 }
 .msg-enter-active {
-  transition: opacity 0.1s ease, transform 0.2s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.2s ease;
 }
 .msg-enter-to {
   opacity: 1;
@@ -222,7 +190,9 @@ function handleSendMessage() {
   transform: translateY(0);
 }
 .msg-leave-active {
-  transition: opacity 0.1s ease, transform 0.2s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.2s ease;
 }
 .msg-leave-to {
   opacity: 0;
@@ -247,7 +217,9 @@ function handleSendMessage() {
   transform: translateY(10px);
 }
 .msg-enter-active {
-  transition: opacity 0.1s ease, transform 0.2s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.2s ease;
 }
 .msg-enter-to {
   opacity: 1;
@@ -260,7 +232,9 @@ function handleSendMessage() {
   transform: translateY(0);
 }
 .msg-leave-active {
-  transition: opacity 0.1s ease, transform 0.2s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.2s ease;
 }
 .msg-leave-to {
   opacity: 0;

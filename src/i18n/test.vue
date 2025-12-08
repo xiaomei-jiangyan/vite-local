@@ -29,8 +29,18 @@ const goGroup = () => {
   router.push({ path: "/community/virtual" });
 };
 
+const testFun = (a = "你好", b = `${varible}bingo`) => {
+  console.log(a, b);
+  var text = "哈哈哈" + `${a},我说了一句你好`;
+  console.log(text);
+  const type = {
+    [a]: "消息",
+  };
+};
+
 onMounted(() => {
   text.value = `你好，这是${varible}社区生活!!!欢迎您！`;
+  // testFun();
 });
 </script>
 <style scoped>
