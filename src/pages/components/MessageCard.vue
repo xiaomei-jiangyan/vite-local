@@ -4,7 +4,7 @@
     ref="item"
     :data-height="msg.height"
     :data-id="msg.msgId"
-    :class="{ isSelf: msg.isSelf }"
+    :class="{ isSelf: msg.isSelf, enter: animate }"
   >
     <div class="msg-card">
       <span>{{ msg.message }}</span>
@@ -22,9 +22,13 @@ const props = defineProps({
 });
 const roomStore = useRoomStore();
 const item = ref(null);
+const animate = ref(false);
 
 onMounted(() => {
   registerHeight();
+  requestAnimationFrame(() => {
+    animate.value = true;
+  });
 });
 
 function registerHeight() {
@@ -36,30 +40,25 @@ function registerHeight() {
 }
 </script>
 <style scoped>
-.msg-item {
-  animation: show 0.5s ease 0.2s;
-}
-@keyframes show {
-  30% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
 .isSelf .msg-card {
   background-color: #d1e7dd;
+}
+
+.msg-item.enter {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .msg-item {
   /* make the item a block so transform/translate works predictably */
   display: block;
   position: relative;
-  will-change: top;
-  transition: top 0.2s ease;
+  /* will-change: top;
+  transition: top 0.2s ease; */
   padding: 6px 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.25s ease;
 }
 
 .msg-card {

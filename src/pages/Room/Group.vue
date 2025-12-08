@@ -4,9 +4,10 @@
     <div class="loadMore" ref="loadMore">{{ hasMore ? "加载更多..." : "没有更多了" }}</div>
     <DynamicScroller
       :items="roomStore.groupMessage"
-      :min-item-size="25"
+      :min-item-size="80"
       key-field="msgId"
       :emit-update="true"
+      :pageMode="true"
       class="scroller"
     >
       <template #default="{ item, index, active }">
@@ -42,17 +43,38 @@ const roomStore = useRoomStore();
 const hasMore = ref(true);
 let pageNum = 0;
 
+const lastSrollTop = ref(0);
+let prevScrollHeight = 0;
+
 const throttledScroll = throttle(onScroll, 50);
+
+const scrollSmoothToTarget = (target = wrapper.value?.scrollHeight, direction = "down") => {
+  const el = wrapper.value;
+  let currentTop = el?.scrollTop ?? 0;
+
+  const scroll = () => {
+    direction === "down" ? (currentTop += 500) : (currentTop -= 500);
+    if (el) el.scrollTop = currentTop;
+    const condition = direction === "down" ? currentTop <= target + 50 : currentTop >= target - 50;
+    if (condition) {
+      requestAnimationFrame(scroll);
+    }
+  };
+  requestAnimationFrame(scroll);
+};
 
 async function onScroll() {
   const el = wrapper.value;
   if (!el) return;
 
   // 顶部加载历史消息
-  if (el.scrollTop <= 300 && !loading.value && hasMore.value) {
+  if (el.scrollTop <= 100 && !loading.value && hasMore.value) {
     loading.value = true;
     loadHistory();
+    console.log(111, "el.scrollHeight", el.scrollHeight);
+    prevScrollHeight = el.scrollHeight;
   }
+  lastSrollTop.value = el.scrollTop;
 }
 
 async function loadHistory() {
@@ -61,13 +83,12 @@ async function loadHistory() {
 
 onMounted(() => {
   const el = wrapper.value;
-  // containerHeight.value = el.clientHeight;
 
+  if (!el) return;
   el.addEventListener("scroll", throttledScroll);
+
+  scrollSmoothToTarget(10000);
 });
-// const wrapper = ref(null);
-// const loadMore = ref(null);
-// const threshold = 200;
 
 const loading = ref(false);
 // let prevScrollHeight = 0;
@@ -93,7 +114,6 @@ const loading = ref(false);
 // });
 
 // attach scroll listener to trigger top-load
-onMounted(() => {});
 
 // websocket handling
 const { isOpen, sendMessage, close } = useWebSocket("ws://localhost:8080?room=2", {
@@ -107,6 +127,17 @@ const { isOpen, sendMessage, close } = useWebSocket("ws://localhost:8080?room=2"
     if (Array.isArray(msgs)) {
       roomStore.batchSave(msgs.map((msg) => ({ ...msg, isSelf: false })));
       if (msgs.length < 10) hasMore.value = false;
+
+      // 修正加载前后 scrollHeight 差值
+      setTimeout(() => {
+        const el = wrapper.value;
+        if (el) {
+          const diff = el.scrollHeight - prevScrollHeight;
+          wrapper.value.scrollTop += diff;
+          // scrollTop.value = diff;
+          console.log("diff", diff);
+        }
+      }, 0);
     } else {
       roomStore.saveGroupMsg({ ...msgs, isSelf: false });
     }
@@ -131,7 +162,7 @@ function handleSendMessage() {
 
 <style scoped>
 .vue-recycle-scroller {
-  height: 100%;
+  /* //height: 100%; */
 }
 .box {
   height: 200px;
@@ -158,48 +189,6 @@ function handleSendMessage() {
   position: relative;
   margin: 0.5rem;
   box-sizing: border-box;
-}
-
-.isSelf {
-  text-align: right;
-}
-
-.loadMore {
-  text-align: center;
-  padding: 0.25rem 0;
-}
-
-/* Enter */
-.msg-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-.msg-enter-active {
-  transition:
-    opacity 0.1s ease,
-    transform 0.2s ease;
-}
-.msg-enter-to {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Leave */
-.msg-leave-from {
-  opacity: 1;
-  transform: translateY(0);
-}
-.msg-leave-active {
-  transition:
-    opacity 0.1s ease,
-    transform 0.2s ease;
-}
-.msg-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-.msg-list {
-  position: relative;
 }
 
 .isSelf {
