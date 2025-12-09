@@ -33,8 +33,10 @@ onMounted(async () => {
   }
   observer.value = new ResizeObserver((entries) => {
     // const offsetHeigth = el.offsetHeight ?? 80;
-    const { width, height = 80 } = entries[0].contentRect;
-    emit("updateHeight", props.msg.msgId, height);
+    requestAnimationFrame(() => {
+      const { width, height = 80 } = entries[0].contentRect;
+      emit("updateHeight", props.msg.msgId, height);
+    });
   });
   if (card.value instanceof Element) {
     observer.value.observe(card.value);
@@ -70,11 +72,11 @@ onUnmounted(() => {
   max-width: 70%;
   padding: 8px 12px;
   border-radius: 8px;
-  background: #eee;
+  background: var(--thirdnary-bg);
 }
 
 .bubble.self {
-  background: #acf;
+  background: var(--second-bg);
   float: right;
 }
 </style>

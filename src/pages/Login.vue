@@ -109,7 +109,7 @@ async function handleError(error) {
   align-items: center;
   /** 渐变 */
   height: 100vh;
-  background: linear-gradient(-45deg, #ff4d4f, #2dd8a4, #3f86ff, #ff9a1f);
+  background: var(--login-bg);
   background-size: 400% 400%;
 
   animation: gradientBG 15s ease infinite;
@@ -135,7 +135,7 @@ async function handleError(error) {
   width: 60%;
   display: flex;
   margin-top: 10px;
-  background: linear-gradient(90deg, #ff4d4f, #2dd8a4);
+  background: var(--submit-bg);
   align-items: center;
   justify-content: center;
 }

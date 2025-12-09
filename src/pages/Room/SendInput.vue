@@ -30,17 +30,18 @@ const handleSend = () => {
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #f9f9f9;
+  background-color: var(--second-bg);
   padding: 10px 10px;
+  z-index: 9998;
   padding-bottom: calc(15px + env(safe-area-inset-bottom, 0));
-  box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -1px 5px var(--boxshadow);
 }
 .send-input input {
   flex: 1;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--second-color);
   border-radius: 8px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 3px var(--boxshadow);
   font-size: 14px;
 }
 .send-input button {
@@ -49,7 +50,7 @@ const handleSend = () => {
   cursor: pointer;
   border: none;
   border-radius: 8px;
-  background-color: #4caf50;
+  background-color: var(--thirdnary-color);
   color: white;
 }
 </style>

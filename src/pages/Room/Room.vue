@@ -57,7 +57,7 @@ const renderMsg = () => {
   }
 };
 
-const { isOpen, sendMessage, close } = useWebSocket("ws://localhost:8080?room=1", {
+const { isOpen, sendMessage, close } = useWebSocket("ws://192.168.0.104:8080?room=1", {
   autoReconnect: true,
   reconnectInterval: 3000,
   onMessage: (event) => {
@@ -197,7 +197,9 @@ onMounted(() => {
   transform: translateY(10px);
 }
 .msg-enter-active {
-  transition: opacity 0.1s ease, transform 0.2s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.2s ease;
 }
 .msg-enter-to {
   opacity: 1;
@@ -210,7 +212,9 @@ onMounted(() => {
   transform: translateY(0);
 }
 .msg-leave-active {
-  transition: opacity 0.1s ease, transform 0.2s ease;
+  transition:
+    opacity 0.1s ease,
+    transform 0.2s ease;
 }
 .msg-leave-to {
   opacity: 0;

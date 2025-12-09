@@ -46,8 +46,8 @@ const isActive = (path) => route.path === path;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eee;
-  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
+  background: var(--thirdnary-bg);
+  box-shadow: 0 -1px 4px var(--boxshadow);
 }
 .tabs-wrapper {
   display: flex;
@@ -56,7 +56,7 @@ const isActive = (path) => route.path === path;
 }
 .tab {
   font-size: 16px;
-  color: #333;
+  color: var(--text-color);
   text-align: center;
   flex: 1;
   line-height: 1;
@@ -65,11 +65,11 @@ const isActive = (path) => route.path === path;
 .tab-item {
   padding: 15px 0;
   text-decoration: none;
-  color: #333;
+  color: var(--text-color);
   transition: color 0.3s;
 }
 .tab:hover,
 .tab-item.active {
-  color: #3f86ff;
+  color: var(--second-text);
 }
 </style>

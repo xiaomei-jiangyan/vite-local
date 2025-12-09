@@ -62,7 +62,7 @@ transition: all 0.3s ease;
   left: 50%;
   transform: translateX(-50%);
   padding: 10px 16px;
-  background: #333;
+  background: var(--thirdnary-bg);
   color: white;
   border-radius: 6px;
 }
@@ -76,7 +76,7 @@ transition: all 0.3s ease;
 }
 .title {
   font-size: 16px;
-  color: #fff;
+  color: var(--color-bg);
   vertical-align: middle;
   /* // font-size: 20px; */
 }

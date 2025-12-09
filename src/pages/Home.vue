@@ -98,7 +98,7 @@ onMounted(() => {
   justify-content: center;
   /* padding-top: 0.3rem; */
   padding-bottom: 0.3rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--boxshadow);
 }
 
 .list-card img {
@@ -110,7 +110,7 @@ onMounted(() => {
 
 .list-card .title {
   font-size: 16px;
-  color: #333;
+  color: var(--text-color);
   margin-left: 5px;
   margin-top: 10px;
 }

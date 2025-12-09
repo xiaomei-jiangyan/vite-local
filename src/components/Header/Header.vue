@@ -39,11 +39,11 @@ const handleClick = () => {
 .menu {
   display: inline-block;
   width: 20px;
-  border-top: 4px solid #333;
-  border-bottom: 4px solid #333;
+  border-top: 4px solid var(--thirdnary-border);
+  border-bottom: 4px solid var(--thirdnary-border);
   height: 4px;
   margin: 10px 0;
-  background: #333;
+  background: var(--thirdnary-bg);
   background-clip: content-box;
 }
 
@@ -53,8 +53,8 @@ const handleClick = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  background: #eee;
+  box-shadow: 0 1px 4px var(--boxshadow);
+  background: var(--thirdnary-bg);
 }
 .header .menu-icon {
   position: absolute;

@@ -33,15 +33,17 @@ onMounted(() => {
 
 function registerHeight() {
   const ro = new ResizeObserver(() => {
-    if (item.value) props.setRealHeight?.(props.msg.msgId, item.value.offsetHeight);
-    if (item.value) roomStore.saveMsgHeight(props.msg.msgId, item.value.offsetHeight);
+    requestAnimationFrame(() => {
+      if (item.value) props.setRealHeight?.(props.msg.msgId, item.value.offsetHeight);
+      if (item.value) roomStore.saveMsgHeight(props.msg.msgId, item.value.offsetHeight);
+    });
   });
   ro.observe(item.value);
 }
 </script>
 <style scoped>
 .isSelf .msg-card {
-  background-color: #d1e7dd;
+  background-color: var(--second-bg);
 }
 
 .msg-item.enter {
@@ -62,12 +64,12 @@ function registerHeight() {
 }
 
 .msg-card {
-  background-color: #f5f5f5;
+  background-color: var(--common-bg);
   border-radius: 10px;
   padding: 12px;
   color: #333;
   margin: 5px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   display: inline-block;
   max-width: 70%;
   word-wrap: break-word;

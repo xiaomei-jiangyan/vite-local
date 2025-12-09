@@ -84,8 +84,8 @@ const errorMsg = computed(() => {
 
 .field input {
   display: inline-block;
-  border: 1px solid #eee;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--second-border);
+  box-shadow: 0 1px 4px var(--boxshadow);
   padding: 8px 10px;
   border-radius: 10px;
   outline: none;

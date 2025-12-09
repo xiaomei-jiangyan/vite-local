@@ -1,12 +1,71 @@
 :root {
   /* 设计 token 示例 */
-  --color-primary: #007aff;
-  --color-bg: #fff;
-  --border-radius: 8px;
+  /* --border-radius: 8px;
   --space-sm: 8px;
   --space-md: 16px;
-  --space-lg: 24px;
+  --space-lg: 24px; */
   /* rem 基准，建议通过 JS 动态设置 html font-size */
+
+  --boxshadow: rgba(0, 0, 0, 0.1);
+
+  --login-bg: linear-gradient(-45deg, #ff4d4f, #2dd8a4, #3f86ff, #ff9a1f);
+  --submit-bg: linear-gradient(90deg, #ff4d4f, #2dd8a4);
+  --button-bg: linear-gradient(90deg, #ff4d4f, #2dd8a4);
+
+  --common-button-bg: #3f86ff;
+  --second-button-bg: #1e883e;
+
+  --border-color: #e0e0e0;
+  --second-border: #eee;
+  --thirdnary-border: #333;
+
+  --color-bg: #fff;
+  --common-bg: #f5f5f5;
+  --second-bg: #f9f9f9;
+  --second-bg: #d1e7dd;
+  --thirdnary-bg: #fff;
+
+  --color-primary: #007aff;
+  --second-color: #ccc;
+  --thirdnary-color: #4caf50;
+
+  --text-color: #333;
+  --second-text: #3f86ff;
+}
+
+html[data-theme="dark"] {
+  /* 设计 token 示例 */
+  /* --border-radius: 8px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px; */
+  /* rem 基准，建议通过 JS 动态设置 html font-size */
+
+  --boxshadow: rgba(0, 0, 0, 0.1);
+
+  --login-bg: linear-gradient(-45deg, #123456, #3f86ff, #cde321, #ff9a1f);
+  --submit-bg: linear-gradient(90deg, #765432, #2dd8a4);
+  --button-bg: linear-gradient(90deg, #234567, #2dd8a4);
+
+  --common-button-bg: #d234f6;
+  --second-button-bg: #123fd2;
+
+  --border-color: #ebe2e2;
+  --second-border: #333;
+  --thirdnary-border: #eee;
+
+  --color-bg: #000000ad;
+  --common-bg: #505050;
+  --second-bg: #808080;
+  --second-bg: #4d4f59;
+  --thirdnary-bg: #6a6e7a;
+
+  --color-primary: #124213;
+  --second-color: #222;
+  --thirdnary-color: #128932;
+
+  --text-color: #fff;
+  --second-text: #d4769a;
 }
 
 body {
@@ -14,7 +73,9 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   font-size: 14px;
   margin: 0;
-  color: #222;
+  color: var(--text-color);
+  box-sizing: border-box;
+  overflow: hidden;
   background: var(--color-bg);
 }
 

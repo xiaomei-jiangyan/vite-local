@@ -6,6 +6,9 @@ import App from "./App.vue";
 import { i18n } from "@/i18n";
 import VirtualScroller from "vue3-virtual-scroller";
 import "vue3-virtual-scroller/dist/vue3-virtual-scroller.css";
+import VConsole from "vconsole";
+
+const vConsole = new VConsole();
 
 (function flexible(designWidth = 375, maxWidth = 1024) {
   const docEl = document.documentElement;
@@ -21,6 +24,13 @@ import "vue3-virtual-scroller/dist/vue3-virtual-scroller.css";
 
 const app = createApp(App);
 const pinia = createPinia();
+
+// if (true) {
+//   import("vconsole").then(({ default: VConsole }) => {
+//     const { VConsoleDefaultPlugin } = VConsole;
+//     new VConsoleDefaultPlugin();
+//   });
+// }
 
 app.use(pinia);
 app.use(i18n);

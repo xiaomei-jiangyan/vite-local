@@ -7,12 +7,38 @@
     <button title="私人聊天" class="button" @click="goRoom">私聊</button>
     <button class="button" @click="goGroup">群聊</button>
     <p>我是 {{ varible }},你是谁呀</p>
+    <Search :searchs="searchs" />
   </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, vModelText } from "vue";
 import { useRouter } from "vue-router";
+import Search from "@/components/Table/Search.vue";
+import { Input } from "ant-design-vue";
 
+const searchs = [
+  {
+    label: "姓名",
+    name: "name",
+    component: Input,
+    props: {
+      defaultValue: "王三",
+      allowClear: true,
+      showCount: true,
+    },
+  },
+  {
+    label: "年龄",
+    name: "age",
+    component: Input,
+    props: {
+      allowClear: true,
+      vModel: age,
+    },
+  },
+];
+
+const age = ref();
 const text = ref("");
 const varible = "奇迹温暖";
 
@@ -41,7 +67,7 @@ onMounted(() => {
   margin: 0 10px;
   border-radius: 5px;
   border: none;
-  background: #3f86ff;
+  background: var(--common-button-bg);
   color: #fff;
   padding: 12px 18px;
 }
