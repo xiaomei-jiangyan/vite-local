@@ -1,18 +1,16 @@
 <template>
   <div class="ai-search">
-    <div class="search-item" v-for="item in props.searchs" :key="item.name">
+    <div class="search-item" v-for="item in SearchData" :key="item.name">
       <label class="search-label" :for="item.name">{{ item.label }}:</label>
       <component
         :is="item.component"
         v-bind="item.props"
         :name="item.name"
         :id="item.name"
-        @change="
-          item.debounce
-            ? debounce(() => handleChange($event, item), item.debounce)
-            : handleChange($event, item)
-        "
+        :value="search[item.name]"
+        @change="handleChangeEvent($event, item)"
       ></component>
+      <div class="error-text" v-if="item.error">{{ item.error }}</div>
     </div>
     <div class="button-wrapper">
       <div v-if="showSearch" class="button search-button" @click.enter="handleSearch">搜索</div>
@@ -22,15 +20,22 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, PropType, watch, watchEffect, onMounted } from "vue";
+import { ref, PropType, watch, reactive, onMounted } from "vue";
 import type { ISearch } from "./type";
 import { debounce } from "@/utils/index";
 
 const emit = defineEmits(["search", "change", "reset", "update:modelValue"]);
+
+type SearchProps = ISearch & { error?: string };
+
 const props = defineProps({
   searchs: {
-    type: Array as PropType<ISearch[]>,
+    type: Array as PropType<SearchProps[]>,
     default: () => [],
+  },
+  modelValue: {
+    type: Object as PropType<Record<string, any>>,
+    default: () => ({}),
   },
   showSearch: {
     type: Boolean,
@@ -42,48 +47,126 @@ const props = defineProps({
   },
 });
 
-const search = ref<any>({});
+// reactive copy of the search definitions (so we can attach runtime fields like error)
+const SearchData = reactive<SearchProps[]>(props.searchs as SearchProps[]);
 
+// current values object
+const search = ref<Record<string, any>>({});
+// initial values to support reset
+const initialValues = ref<Record<string, any>>({});
+
+// map to store per-field debounced handlers
+const debounceMap = new Map<string, (...args: any[]) => void>();
+
+const getValueFromEvent = (e: any, item: SearchProps) => {
+  if (e === undefined || e === null) return e;
+  if (typeof e !== "object") return e;
+  // DOM event
+  if (e.target && e.target.value) return e.target.value;
+  // object with value
+  if (typeof e.value !== "undefined") return e.value;
+  // fallback to whole object
+  if (typeof item.valueKey !== "undefined") {
+    return e[item.valueKey];
+  }
+  return e;
+};
+
+const initFromProps = () => {
+  const arr = props.searchs || [];
+  const vals: Record<string, any> = {};
+  arr.forEach((item) => {
+    const name = item.name;
+    // priority: external modelValue > item.props.value > defaultValue > undefined
+    if (props.modelValue && Object.prototype.hasOwnProperty.call(props.modelValue, name)) {
+      vals[name] = props.modelValue[name];
+    } else if (item.props && typeof item.props.value !== "undefined") {
+      vals[name] = item.props.value;
+    } else if (typeof item.props?.defaultValue !== "undefined") {
+      vals[name] = item.props.defaultValue;
+    } else {
+      vals[name] = undefined;
+    }
+  });
+  initialValues.value = JSON.parse(JSON.stringify(vals));
+  console.log(111, "initialValues.value", initialValues.value);
+  search.value = JSON.parse(JSON.stringify(vals));
+  // emit initial model to parent so controlled mode stays in sync
+  emit("update:modelValue", search.value);
+};
+
+// initialize on mount and whenever search definitions change
+onMounted(initFromProps);
 watch(
   () => props.searchs,
-  (newValue) => {
-    if (Array.isArray(newValue)) {
-      newValue.forEach((item) => {
-        search.value[item.name] = item.props.value;
-      });
-    }
-  }
+  () => {
+    initFromProps();
+  },
+  { deep: true }
 );
 
-const setDefaultValue = () => {
-  const newValue = props.searchs;
-  if (Array.isArray(newValue)) {
-    newValue.forEach((item) => {
-      search.value[item.name] = item.props.defaultValue;
-    });
+// watch external modelValue: if parent controls the values, sync into internal state
+watch(
+  () => props.modelValue,
+  (nv) => {
+    if (nv && typeof nv === "object") {
+      search.value = { ...search.value, ...nv };
+    }
+  },
+  { deep: true }
+);
+
+const handleChangeEvent = (e: any, item: SearchProps) => {
+  if (item.debounce) {
+    const fn = createDebounced(item);
+    fn(e);
+  } else {
+    handleChange(e, item);
   }
 };
 
-onMounted(() => {
-  setDefaultValue();
-});
+const createDebounced = (item: SearchProps) => {
+  const name = item.name;
+  if (debounceMap.has(name)) return debounceMap.get(name)!;
+  const delay = typeof item.debounce === "number" ? item.debounce : 300;
+  const fn = debounce((e: any) => handleChange(e, item), delay);
+  debounceMap.set(name, fn);
+  return fn;
+};
 
-const handleChange = (e: any, item: ISearch) => {
-  const value = typeof e === "string" ? e : item.valueKey ? e[item.valueKey] : e.target.value;
+const handleChange = async (e: any, item: SearchProps) => {
+  const value = getValueFromEvent(e, item);
   search.value[item.name] = value;
-  if (typeof item.props.value !== "undefined") {
-    emit("update:modelValue", value);
+  let validate = true;
+  if (item.validator) {
+    if (item.validator instanceof RegExp) {
+      validate = item.validator.test(value);
+    } else {
+      validate = await item.validator(value);
+    }
   }
+  if (!validate) {
+    item.error = `请输入有效字段`;
+    return;
+  }
+  delete item.error;
+
+  // always emit full modelValue and per-field change
+
+  emit("update:modelValue", { ...search.value });
   emit("change", { name: item.name, value });
 };
 
 const handleSearch = () => {
-  console.log(111, JSON.stringify(search.value));
-  emit("search", search.value);
+  console.log(111, "search.value ", search.value);
+  emit("search", { ...search.value });
 };
 
 const handleReset = () => {
-  setDefaultValue();
+  search.value = JSON.parse(JSON.stringify(initialValues.value));
+  // clear errors
+  (SearchData || []).forEach((it) => delete (it as SearchProps).error);
+  emit("update:modelValue", { ...search.value });
   emit("reset");
 };
 
@@ -107,7 +190,8 @@ defineExpose({
   gap: 5px;
   font-size: 14px;
   color: #eee;
-  margin: 10px;
+  position: relative;
+  padding-bottom: 20px;
 }
 .search-label {
   min-width: 80px;
@@ -130,5 +214,12 @@ defineExpose({
   .reset-button {
     border: 1px solid #585aa4;
   }
+}
+.error-text {
+  color: red;
+  font-size: 10px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 </style>

@@ -11,34 +11,35 @@
   </div>
 </template>
 <script setup>
-import { onMounted, ref, vModelText } from "vue";
+import { onMounted, inject, ref, markRaw } from "vue";
 import { useRouter } from "vue-router";
 import Search from "@/components/Table/Search.vue";
 import { Input } from "ant-design-vue";
+const Toast = inject("toast");
 
 const searchs = [
   {
     label: "姓名",
     name: "name",
-    component: Input,
+    component: markRaw(Input),
     props: {
       defaultValue: "王三",
       allowClear: true,
       showCount: true,
     },
+    debounce: 300,
   },
   {
     label: "年龄",
     name: "age",
-    component: Input,
+    component: markRaw(Input),
+    validator: (value) => value <= 13,
     props: {
       allowClear: true,
-      vModel: age,
     },
   },
 ];
 
-const age = ref();
 const text = ref("");
 const varible = "奇迹温暖";
 
@@ -56,6 +57,7 @@ const goGroup = () => {
 };
 
 onMounted(() => {
+  Toast.error(`111`);
   text.value = `你好，这是${varible}社区生活!!!欢迎您！`;
 });
 </script>

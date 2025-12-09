@@ -10,4 +10,5 @@ export type ISearch = {
   valueKey?: string;
   model?: any;
   debounce?: number;
+  validator?: RegExp | Function;
 };

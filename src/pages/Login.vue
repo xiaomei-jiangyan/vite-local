@@ -45,14 +45,14 @@
   </div>
 </template>
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, inject, ref } from "vue";
 import { useUserStore } from "@/store/user";
 import { useRouter, useRoute } from "vue-router";
-import { useToast } from "@/components/Toast/index.js";
 import { useFetch } from "@/hooks/useFetch";
 import { AForm, AField, ARadio } from "@/components/Form";
 
-const Toast = useToast();
+const Toast = inject("toast");
+
 const formRef = ref();
 
 const store = useUserStore();

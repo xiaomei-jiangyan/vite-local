@@ -7,6 +7,7 @@ import { i18n } from "@/i18n";
 import VirtualScroller from "vue3-virtual-scroller";
 import "vue3-virtual-scroller/dist/vue3-virtual-scroller.css";
 import VConsole from "vconsole";
+import toastPlugin from "@/plugins/toast";
 
 const vConsole = new VConsole();
 
@@ -37,5 +38,6 @@ app.use(i18n);
 app.use(router);
 
 app.use(VirtualScroller);
-
+// install toast plugin to expose $toast globally and via provide/inject
+app.use(toastPlugin);
 app.mount("#app");
