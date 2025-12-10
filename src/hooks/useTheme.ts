@@ -2,8 +2,10 @@ import { onMounted, ref, readonly } from "vue";
 
 export type ThemeMode = "dark" | "light";
 
+export const defaultThemeMode = "light";
+
 export function useTheme() {
-  const theme = ref<ThemeMode>();
+  const theme = ref<ThemeMode>(defaultThemeMode);
 
   const getTheme = (): ThemeMode => {
     if (theme.value === "dark" || theme.value === "light") return theme.value;

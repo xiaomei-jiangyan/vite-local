@@ -1,0 +1,7 @@
+html[data-theme="dark"] {
+  --ant-primary-color: red;
+  --ant-primary-color-hover: red;
+  --ant-background-color: red;
+  --ant-component-background: red;
+  --ant-text-color: rgba(255, 255, 255, 0.85);
+}

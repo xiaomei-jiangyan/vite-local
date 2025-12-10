@@ -27,16 +27,19 @@ const searchs = [
       allowClear: true,
       showCount: true,
     },
+    dependencies: ["age"],
+    invisible: (form) => form.age > 15,
     debounce: 300,
   },
   {
     label: "年龄",
     name: "age",
     component: markRaw(Input),
-    validator: (value) => value <= 13,
+    // validator: (value) => value <= 13,
     props: {
       allowClear: true,
     },
+    debounce: 300,
   },
 ];
 

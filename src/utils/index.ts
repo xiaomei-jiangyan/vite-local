@@ -3,7 +3,6 @@ export function debounce(fn: Function, delay: number = 500) {
   return function (...args: any[]) {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      console.log("args", args, fn);
       fn.apply(null, args);
       clearTimeout(timer);
     }, delay);

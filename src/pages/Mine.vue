@@ -18,6 +18,7 @@ const [theme, setTheme] = useTheme();
 
 const handleDarkMode = () => {
   // 设置黑暗模式
+  console.log(111, "theme.value", theme.value);
   theme.value === "light" ? setTheme("dark") : setTheme("light");
 };
 

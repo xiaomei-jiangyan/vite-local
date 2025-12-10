@@ -8,6 +8,7 @@ import VirtualScroller from "vue3-virtual-scroller";
 import "vue3-virtual-scroller/dist/vue3-virtual-scroller.css";
 import VConsole from "vconsole";
 import toastPlugin from "@/plugins/toast";
+import Antd from "ant-design-vue";
 
 const vConsole = new VConsole();
 
@@ -36,6 +37,8 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(i18n);
 app.use(router);
+
+app.use(Antd);
 
 app.use(VirtualScroller);
 // install toast plugin to expose $toast globally and via provide/inject

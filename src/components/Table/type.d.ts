@@ -11,4 +11,6 @@ export type ISearch = {
   model?: any;
   debounce?: number;
   validator?: RegExp | Function;
+  invisible?: boolean | Function;
+  dependenices?: string[]; // name 字段的集合
 };

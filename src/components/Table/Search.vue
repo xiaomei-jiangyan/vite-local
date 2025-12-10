@@ -1,6 +1,11 @@
 <template>
   <div class="ai-search">
-    <div class="search-item" v-for="item in SearchData" :key="item.name">
+    <div
+      class="search-item"
+      v-for="item in SearchData"
+      :key="item.name"
+      :class="{ hide: item.hide }"
+    >
       <label class="search-label" :for="item.name">{{ item.label }}:</label>
       <component
         :is="item.component"
@@ -20,13 +25,18 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, PropType, watch, reactive, onMounted } from "vue";
+import { ref, PropType, watch, reactive, onMounted, onUnmounted } from "vue";
 import type { ISearch } from "./type";
 import { debounce } from "@/utils/index";
 
 const emit = defineEmits(["search", "change", "reset", "update:modelValue"]);
 
-type SearchProps = ISearch & { error?: string };
+type SearchProps = ISearch & {
+  error?: string;
+  hide?: boolean;
+  // accept several possible dependency field spellings for backward compatibility
+  dependencies?: string[];
+};
 
 const props = defineProps({
   searchs: {
@@ -48,7 +58,7 @@ const props = defineProps({
 });
 
 // reactive copy of the search definitions (so we can attach runtime fields like error)
-const SearchData = reactive<SearchProps[]>(props.searchs as SearchProps[]);
+const SearchData = ref<SearchProps[]>([]);
 
 // current values object
 const search = ref<Record<string, any>>({});
@@ -57,6 +67,7 @@ const initialValues = ref<Record<string, any>>({});
 
 // map to store per-field debounced handlers
 const debounceMap = new Map<string, (...args: any[]) => void>();
+const dependenciesMap = new Map<string, (() => Promise<void>)[]>();
 
 const getValueFromEvent = (e: any, item: SearchProps) => {
   if (e === undefined || e === null) return e;
@@ -69,13 +80,19 @@ const getValueFromEvent = (e: any, item: SearchProps) => {
   if (typeof item.valueKey !== "undefined") {
     return e[item.valueKey];
   }
-  return e;
+  return typeof e === "string" ? e : e.target.value;
 };
 
 const initFromProps = () => {
-  const arr = props.searchs || [];
+  // clear any previous dependency registrations
+  dependenciesMap.clear();
+  // make a reactive copy of searchs into array so we can mutate fields like .hide / .error
+  SearchData.value = (props.searchs || []).map((s) =>
+    reactive({ ...s, hide: false, error: "" } as SearchProps)
+  );
+  //  const arr = reactive(props.searchs || []);
   const vals: Record<string, any> = {};
-  arr.forEach((item) => {
+  SearchData.value.forEach((item) => {
     const name = item.name;
     // priority: external modelValue > item.props.value > defaultValue > undefined
     if (props.modelValue && Object.prototype.hasOwnProperty.call(props.modelValue, name)) {
@@ -87,10 +104,19 @@ const initFromProps = () => {
     } else {
       vals[name] = undefined;
     }
+    const depsField = item.dependencies;
+
+    if (Array.isArray(depsField)) {
+      depsField.forEach((dep) => {
+        const array = dependenciesMap.get(dep) ?? [];
+        array.push(async () => await validatorField(item));
+        dependenciesMap.set(dep, array);
+      });
+    }
   });
   initialValues.value = JSON.parse(JSON.stringify(vals));
-  console.log(111, "initialValues.value", initialValues.value);
   search.value = JSON.parse(JSON.stringify(vals));
+
   // emit initial model to parent so controlled mode stays in sync
   emit("update:modelValue", search.value);
 };
@@ -117,12 +143,12 @@ watch(
 );
 
 const handleChangeEvent = (e: any, item: SearchProps) => {
-  if (item.debounce) {
-    const fn = createDebounced(item);
-    fn(e);
-  } else {
-    handleChange(e, item);
-  }
+  // if (item.debounce) {
+  //   const fn = createDebounced(item);
+  //   fn(e);
+  // } else {
+  handleChange(e, item);
+  // }
 };
 
 const createDebounced = (item: SearchProps) => {
@@ -136,36 +162,58 @@ const createDebounced = (item: SearchProps) => {
 
 const handleChange = async (e: any, item: SearchProps) => {
   const value = getValueFromEvent(e, item);
+  // ensure we finish validating/updating this field before running dependents
+  await validatorField(item, value);
+  if (dependenciesMap.has(item.name)) {
+    const deps = dependenciesMap.get(item.name);
+    if (deps) deps.forEach((dep: () => Promise<void>) => dep());
+  }
+};
+
+const validatorField = async (item: SearchProps, value = search.value[item.name]) => {
   search.value[item.name] = value;
+  let invisible = false; // 不可见的
+  if (typeof item.invisible !== "undefined") {
+    if (typeof item.invisible === "function") {
+      invisible = await item.invisible(search.value);
+    } else {
+      invisible = !!item.invisible;
+    }
+  }
+  item.hide = !!invisible;
+  if (invisible) {
+    return;
+  }
   let validate = true;
   if (item.validator) {
     if (item.validator instanceof RegExp) {
       validate = item.validator.test(value);
     } else {
-      validate = await item.validator(value);
+      validate = await item.validator(search.value);
     }
   }
   if (!validate) {
-    item.error = `请输入有效字段`;
+    item.error = `校验失败`;
     return;
   }
   delete item.error;
-
   // always emit full modelValue and per-field change
-
   emit("update:modelValue", { ...search.value });
   emit("change", { name: item.name, value });
 };
 
 const handleSearch = () => {
-  console.log(111, "search.value ", search.value);
+  console.log("search.value ", search.value);
   emit("search", { ...search.value });
 };
 
 const handleReset = () => {
   search.value = JSON.parse(JSON.stringify(initialValues.value));
   // clear errors
-  (SearchData || []).forEach((it) => delete (it as SearchProps).error);
+  (SearchData.value || []).forEach((it) => {
+    delete (it as SearchProps).error;
+    delete (it as SearchProps).hide;
+  });
   emit("update:modelValue", { ...search.value });
   emit("reset");
 };
@@ -177,6 +225,11 @@ defineExpose({
     const ele = document.querySelector(`#${fieldName}`) as HTMLInputElement;
     if (ele) ele.focus();
   },
+});
+
+onUnmounted(() => {
+  debounceMap.clear();
+  dependenciesMap.clear();
 });
 </script>
 <style scoped lang="less">
@@ -192,6 +245,12 @@ defineExpose({
   color: #eee;
   position: relative;
   padding-bottom: 20px;
+  // &.show {
+  //   display: flex;
+  // }
+  &.hide {
+    display: none;
+  }
 }
 .search-label {
   min-width: 80px;
@@ -204,6 +263,7 @@ defineExpose({
   justify-content: flex-end;
   align-items: center;
   gap: 15px;
+  width: 100%;
   .button {
     padding: 8px 12px;
     border-radius: 8px;
