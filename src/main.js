@@ -10,7 +10,7 @@ import VConsole from "vconsole";
 import toastPlugin from "@/plugins/toast";
 import Antd from "ant-design-vue";
 
-const vConsole = new VConsole();
+// const vConsole = new VConsole();
 
 (function flexible(designWidth = 375, maxWidth = 1024) {
   const docEl = document.documentElement;

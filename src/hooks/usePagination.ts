@@ -8,9 +8,12 @@ export const PaginationIterator = {
 
 export const defaultPageSize = 10;
 
-export function usePagination(url: string, options: Options) {
-  const pageSize = ref(defaultPageSize);
-  const pageNum = ref(0);
+export function usePagination(
+  url: string,
+  options: Options & { pageSize: number; pageNum: number }
+) {
+  const pageSize = ref(options.pageSize ?? defaultPageSize);
+  const pageNum = ref(options.pageNum ?? 0);
   const hasMore = ref(true);
 
   const [pageFetch, response] = useFetch(url, options);

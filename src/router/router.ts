@@ -8,6 +8,7 @@ import Mine from "@/pages/Mine.vue";
 import Room from "@/pages/Room/Room.vue";
 import Group from "@/pages/Room/Group.vue";
 import VirtualGroup from "@/pages/Virtual/Group.vue";
+import Table from "@/pages/Table/index.vue";
 
 export const pageRoutes = [
   {
@@ -73,6 +74,16 @@ export const pageRoutes = [
       icon: "back",
       tabbar: false,
       requireAuth: true,
+    },
+  },
+  {
+    path: "/community/table",
+    component: Table,
+    name: "Table",
+    meta: {
+      title: "Table",
+      icon: "back",
+      tabbar: false,
     },
   },
   {

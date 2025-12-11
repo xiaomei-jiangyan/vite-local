@@ -67,5 +67,5 @@ export function useFetch(url: string, options: Options = {}) {
       error,
       cancel,
     },
-  ];
+  ] as [Function, Object];
 }

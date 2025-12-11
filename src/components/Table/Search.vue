@@ -143,12 +143,12 @@ watch(
 );
 
 const handleChangeEvent = (e: any, item: SearchProps) => {
-  // if (item.debounce) {
-  //   const fn = createDebounced(item);
-  //   fn(e);
-  // } else {
-  handleChange(e, item);
-  // }
+  if (item.debounce) {
+    const fn = createDebounced(item);
+    fn(e);
+  } else {
+    handleChange(e, item);
+  }
 };
 
 const createDebounced = (item: SearchProps) => {
@@ -236,7 +236,8 @@ onUnmounted(() => {
 .ai-search {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 .search-item {
   display: flex;
@@ -245,6 +246,7 @@ onUnmounted(() => {
   color: #eee;
   position: relative;
   padding-bottom: 20px;
+  align-items: center;
   // &.show {
   //   display: flex;
   // }
@@ -253,9 +255,9 @@ onUnmounted(() => {
   }
 }
 .search-label {
-  min-width: 80px;
-  display: flex;
-  align-items: center;
+  color: #333;
+  white-space: nowrap;
+  flex-shrink: 0;
   /* // justify-content: center; */
 }
 .button-wrapper {
@@ -263,7 +265,8 @@ onUnmounted(() => {
   justify-content: flex-end;
   align-items: center;
   gap: 15px;
-  width: 100%;
+  padding-bottom: 20px;
+  // width: 100%;
   .button {
     padding: 8px 12px;
     border-radius: 8px;

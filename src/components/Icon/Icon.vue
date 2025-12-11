@@ -16,6 +16,7 @@ const props = defineProps({
     ],
   },
 });
+
 onMounted(() => {
   loadScript();
 });
