@@ -15,6 +15,7 @@ export type ISearch = {
   validator?: RegExp | Function;
   invisible?: boolean | Function;
   dependenices?: string[]; // name 字段的集合
+  transform?: (...args: any[]) => any;
 };
 
 export interface IColumn extends ColumnProps {

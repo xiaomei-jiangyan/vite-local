@@ -10,7 +10,7 @@
           @click="handleColShow(col)"
         >
           <span>{{ col.title }}</span>
-          <Icon name="success" v-if="col.selected" />
+          <a-checkbox v-if="col.selected" v-model:checked="col.selected"></a-checkbox>
         </div>
       </template>
       <a-button size="small" type="default">Setting</a-button>
@@ -59,7 +59,6 @@
 <script setup lang="ts">
 import { useUserStore } from "@/store/user";
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import Icon from "@/components/Icon/Icon.vue";
 import type { IColumn, ITable } from "./type";
 import { Key } from "ant-design-vue/es/vc-table/interface";
 import { useTableStore, exportCSV } from "./table";
@@ -169,8 +168,8 @@ const fetchData = (body: any) => {
           "Content-Type": "application/json",
         };
       } else {
-        const queryString = Object.keys(options).reduce((prev, next) => {
-          return prev + `${next}=${options[next]}&`;
+        const queryString = Object.keys(options).reduce((prev, next, index) => {
+          return prev + `${next}=${options[next]}${index !== options.length - 1 ? "&" : ""}`;
         }, "?");
         // const queryString = new URLSearchParams(options).toString();
         url += `${queryString}`;

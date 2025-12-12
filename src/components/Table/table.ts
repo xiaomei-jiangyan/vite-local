@@ -2,7 +2,6 @@ let storage = new Map();
 export function useTableStore(key?: string) {
   function save(value: any, _key = key) {
     if (!_key) return;
-    console.log(111, "value", value);
     storage.set(_key, value);
   }
   function get(_key = key) {

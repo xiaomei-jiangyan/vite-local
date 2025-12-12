@@ -25,17 +25,19 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, PropType, watch, reactive, onMounted, onUnmounted } from "vue";
+import { ref, PropType, watch, reactive, onMounted, onUnmounted, readonly, nextTick } from "vue";
 import type { ISearch } from "./type";
 import { debounce } from "@/utils/index";
 
 const emit = defineEmits(["search", "change", "reset", "update:modelValue"]);
 
+export type IDependency = string | { field: string; fn: Function };
+
 type SearchProps = ISearch & {
   error?: string;
   hide?: boolean;
   // accept several possible dependency field spellings for backward compatibility
-  dependencies?: string[];
+  dependencies?: IDependency[];
 };
 
 const props = defineProps({
@@ -108,9 +110,15 @@ const initFromProps = () => {
 
     if (Array.isArray(depsField)) {
       depsField.forEach((dep) => {
-        const array = dependenciesMap.get(dep) ?? [];
-        array.push(async () => await validatorField(item));
-        dependenciesMap.set(dep, array);
+        const isStr = typeof dep === "string";
+        const key = isStr ? dep : dep.field;
+        const array = dependenciesMap.get(key) ?? [];
+        array.push(
+          isStr
+            ? async () => await validatorField(item)
+            : async () => await dep.fn(readonly(search.value))
+        );
+        dependenciesMap.set(key, array);
       });
     }
   });
@@ -122,11 +130,23 @@ const initFromProps = () => {
 };
 
 // initialize on mount and whenever search definitions change
-onMounted(initFromProps);
+onMounted(async () => {
+  initFromProps();
+  await nextTick();
+  props.searchs.forEach((item) => consumeDeps(item.name));
+});
+
 watch(
-  () => props.searchs,
-  () => {
-    initFromProps();
+  () => props.searchs, // 监听外面组件的变化更新
+  (newValue, oldValue) => {
+    SearchData.value = (newValue || []).map((s, index) => {
+      if (s.props.defaultValue !== oldValue[index].props.defaultValue) {
+        console.log(111, s.component);
+        search.value[s.name] = s.props.defaultValue;
+      }
+      consumeDeps(s.name);
+      return reactive({ ...SearchData.value[index], ...s } as SearchProps);
+    });
   },
   { deep: true }
 );
@@ -160,14 +180,18 @@ const createDebounced = (item: SearchProps) => {
   return fn;
 };
 
+const consumeDeps = (name: string) => {
+  if (dependenciesMap.has(name)) {
+    const deps = dependenciesMap.get(name);
+    if (deps) deps.forEach((dep: () => Promise<void>) => dep());
+  }
+};
+
 const handleChange = async (e: any, item: SearchProps) => {
   const value = getValueFromEvent(e, item);
   // ensure we finish validating/updating this field before running dependents
   await validatorField(item, value);
-  if (dependenciesMap.has(item.name)) {
-    const deps = dependenciesMap.get(item.name);
-    if (deps) deps.forEach((dep: () => Promise<void>) => dep());
-  }
+  consumeDeps(item.name);
 };
 
 const validatorField = async (item: SearchProps, value = search.value[item.name]) => {
@@ -270,6 +294,7 @@ onUnmounted(() => {
   .button {
     padding: 8px 12px;
     border-radius: 8px;
+    white-space: nowrap;
   }
   .search-button {
     background: #585aa4;

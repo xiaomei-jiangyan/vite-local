@@ -1,6 +1,5 @@
 <template>
   <div class="table-page">
-    <!-- <Search :searchs="searchs" /> -->
     <Table
       action="/api/table"
       storageQuery="tableIndex"
@@ -9,43 +8,19 @@
       :pageSize="10"
     >
       <template #action="{ record }">
-        <button @click="handleGoPrivate">Private</button>
+        <button @click="handleGoPrivate(record.id)">Private</button>
       </template>
     </Table>
   </div>
 </template>
 <script setup>
-import { onMounted, inject, ref, markRaw } from "vue";
 import { useRouter } from "vue-router";
-import Search from "@/components/Table/Search.vue";
 import { Input } from "ant-design-vue";
 import Table from "@/components/Table/Table.vue";
-
-const searchs = [
-  {
-    label: "姓名",
-    name: "name",
-    component: markRaw(Input),
-    props: {
-      defaultValue: "王三",
-      allowClear: true,
-      showCount: true,
-    },
-    dependencies: ["age"],
-    invisible: (form) => form.age > 15,
-    debounce: 300,
-  },
-  {
-    label: "年龄",
-    name: "age",
-    component: markRaw(Input),
-    // validator: (value) => value <= 13,
-    props: {
-      allowClear: true,
-    },
-    debounce: 300,
-  },
-];
+defineOptions({
+  name: "Table",
+});
+const router = useRouter();
 
 const columns = [
   {
@@ -64,6 +39,7 @@ const columns = [
       invisible: (form) => form.age > 15,
     },
   },
+
   {
     title: "年龄",
     key: "age",
@@ -127,15 +103,10 @@ const columns = [
     align: "center",
   },
 ];
-const router = useRouter();
 
 const handleGoPrivate = () => {
   router.push({ path: "/community/room" });
 };
-
-defineOptions({
-  name: "Table",
-});
 </script>
 <style scoped>
 .table-page {
