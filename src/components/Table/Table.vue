@@ -1,5 +1,5 @@
 <template>
-  <Search v-if="searchs.length > 0" :searchs="searchs" />
+  <Search v-if="searchs.length > 0" :searchs="searchs" v-model="search" />
   <div class="action-wrapper">
     <a-popover placement="topLeft">
       <template #content>
@@ -149,72 +149,100 @@ const cacheMap = new Map();
 
 const { save: saveQuery, get: getQuery } = useTableStore(props.storageQuery);
 
-const fetchData = (body: any) => {
-  const user = useUserStore();
+// const fetchData = (body: any) => {
+//   const user = useUserStore();
 
-  if (props.customRequest) {
-    return props.customRequest(body);
+//   if (props.customRequest) {
+//     return props.customRequest(body);
+//   } else {
+//     function getOption() {
+//       const options = {
+//         token: user.token,
+//         method: props.method,
+//         ...body,
+//       } as any;
+//       let url = props.action;
+//       if (props.method === "POST") {
+//         options.body = JSON.stringify(options);
+//         options.headers = {
+//           "Content-Type": "application/json",
+//         };
+//       } else {
+//         const queryString = Object.keys(options).reduce((prev, next, index) => {
+//           return prev + `${next}=${options[next]}${index !== options.length - 1 ? "&" : ""}`;
+//         }, "?");
+//         // const queryString = new URLSearchParams(options).toString();
+//         url += `${queryString}`;
+//         options.url = url;
+//       }
+//       return options;
+//     }
+//     const { url, ...options } = getOption();
+//     const mapKey = `${JSON.stringify(options)}`;
+//     if (cacheMap.has(mapKey)) {
+//       const response = cacheMap.get(mapKey);
+//       return response.status === "success"
+//         ? Promise.resolve(response.data)
+//         : Promise.reject(response.data);
+//     }
+//     return fetch(url, options)
+//       .then((res) => {
+//         if (!res.ok) {
+//           throw new Error("Network response was not ok");
+//         }
+//         return res.json();
+//       })
+//       .then((data) => {
+//         if (props.cache) {
+//           cacheMap.set(mapKey, {
+//             status: "success",
+//             data: {
+//               list: data.list,
+//               total: data.total ?? data.list.length,
+//             },
+//           });
+//         }
+//         return data;
+//       })
+//       .catch((e) => {
+//         if (props.cache) {
+//           cacheMap.set(mapKey, {
+//             status: "failed",
+//             data: e,
+//           });
+//         }
+//         return Promise.reject(e);
+//       });
+//   }
+// };
+
+async function fetchData(body: Object) {
+  const user = useUserStore();
+  const urlBase = props.action;
+  const payload: Record<string, any> = { ...body };
+
+  const method = (props.method || "GET").toUpperCase();
+  const headers: any = { Accept: "application/json" };
+  if (user.token) headers["Authorization"] = `Bearer ${user.token}`;
+
+  let url = urlBase;
+  const fetchOpts: any = { method, headers };
+
+  if (method === "POST") {
+    fetchOpts.body = JSON.stringify(payload);
+    fetchOpts.headers["Content-Type"] = "application/json";
   } else {
-    function getOption() {
-      const options = {
-        token: user.token,
-        method: props.method,
-        ...body,
-      } as any;
-      let url = props.action;
-      if (props.method === "POST") {
-        options.body = JSON.stringify(options);
-        options.headers = {
-          "Content-Type": "application/json",
-        };
-      } else {
-        const queryString = Object.keys(options).reduce((prev, next, index) => {
-          return prev + `${next}=${options[next]}${index !== options.length - 1 ? "&" : ""}`;
-        }, "?");
-        // const queryString = new URLSearchParams(options).toString();
-        url += `${queryString}`;
-        options.url = url;
-      }
-      return options;
-    }
-    const { url, ...options } = getOption();
-    const mapKey = `${JSON.stringify(options)}`;
-    if (cacheMap.has(mapKey)) {
-      const response = cacheMap.get(mapKey);
-      return response.status === "success"
-        ? Promise.resolve(response.data)
-        : Promise.reject(response.data);
-    }
-    return fetch(url, options)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (props.cache) {
-          cacheMap.set(mapKey, {
-            status: "success",
-            data: {
-              list: data.list,
-              total: data.total ?? data.list.length,
-            },
-          });
-        }
-        return data;
-      })
-      .catch((e) => {
-        if (props.cache) {
-          cacheMap.set(mapKey, {
-            status: "failed",
-            data: e,
-          });
-        }
-        return Promise.reject(e);
-      });
+    const urlObj = new URL(url, window.location.origin);
+    Object.keys(payload).forEach((k) => {
+      if (payload[k] !== undefined) urlObj.searchParams.set(k, String(payload[k]));
+    });
+    url = urlObj.toString();
   }
-};
+
+  const res = await fetch(url, fetchOpts);
+  if (!res.ok) throw new Error("Network response was not ok");
+  return res.json();
+}
 
 const fetchRequest = async () => {
   try {

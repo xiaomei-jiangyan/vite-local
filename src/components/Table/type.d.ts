@@ -4,6 +4,8 @@ import component from "../../../shims-vue";
 import { selectProps } from "ant-design-vue/es/vc-select";
 import { TableProps, ColumnProps } from "ant-design-vue/es/table";
 
+export type IDependency = string | { field: string; fn: Function };
+
 export type ISearch = {
   component: component;
   label: string;
@@ -14,8 +16,9 @@ export type ISearch = {
   debounce?: number;
   validator?: RegExp | Function;
   invisible?: boolean | Function;
-  dependenices?: string[]; // name 字段的集合
+  dependencies?: IDependency[]; // name 字段的集合
   transform?: (...args: any[]) => any;
+  valueProp?: "value" | "modelValue";
 };
 
 export interface IColumn extends ColumnProps {

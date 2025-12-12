@@ -7,14 +7,23 @@
       :class="{ hide: item.hide }"
     >
       <label class="search-label" :for="item.name">{{ item.label }}:</label>
-      <component
+      <!-- <component
         :is="item.component"
         v-bind="item.props"
         :name="item.name"
         :id="item.name"
         :value="search[item.name]"
         @change="handleChangeEvent($event, item)"
-      ></component>
+      ></component> -->
+      <component
+        :is="item.component"
+        v-bind="item.props"
+        :name="item.name"
+        :id="item.name"
+        :[item.valueProp||'value']="search[item.name]"
+        @change="handleChangeEvent($event, item)"
+        @update:modelValue="(val: any) => handleChange(val, item)"
+      />
       <div class="error-text" v-if="item.error">{{ item.error }}</div>
     </div>
     <div class="button-wrapper">
@@ -31,13 +40,10 @@ import { debounce } from "@/utils/index";
 
 const emit = defineEmits(["search", "change", "reset", "update:modelValue"]);
 
-export type IDependency = string | { field: string; fn: Function };
-
 type SearchProps = ISearch & {
   error?: string;
   hide?: boolean;
   // accept several possible dependency field spellings for backward compatibility
-  dependencies?: IDependency[];
 };
 
 const props = defineProps({
@@ -48,6 +54,10 @@ const props = defineProps({
   modelValue: {
     type: Object as PropType<Record<string, any>>,
     default: () => ({}),
+  },
+  valueProp: {
+    type: String,
+    default: "value",
   },
   showSearch: {
     type: Boolean,
@@ -140,11 +150,14 @@ watch(
   () => props.searchs, // 监听外面组件的变化更新
   (newValue, oldValue) => {
     SearchData.value = (newValue || []).map((s, index) => {
-      if (s.props.defaultValue !== oldValue[index].props.defaultValue) {
-        console.log(111, s.component);
+      const old = oldValue.find((item) => item.name === s.name);
+      if (s.props.defaultValue !== old?.props?.defaultValue) {
         search.value[s.name] = s.props.defaultValue;
+        consumeDeps(s.name);
       }
-      consumeDeps(s.name);
+      // if (s !== old) {
+      //   // consumeDeps(s.name);
+      // }
       return reactive({ ...SearchData.value[index], ...s } as SearchProps);
     });
   },
