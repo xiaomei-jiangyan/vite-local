@@ -12,12 +12,13 @@
   </div>
 </template>
 <script setup>
-import { onMounted, inject, computed, ref, markRaw } from "vue";
+import { onMounted, inject, computed, onDeactivated, ref, markRaw } from "vue";
 import { useRouter } from "vue-router";
 import Search from "@/components/Table/Search.vue";
 import { Input } from "ant-design-vue";
 import { useFetch } from "@/hooks/useFetch";
 import CustomInput from "@/components/Table/CustomInput.vue";
+import { PopupManager, PopupSDK } from "@/utils/popup-sdk";
 
 const Toast = inject("toast");
 
@@ -115,8 +116,15 @@ const goGroup = () => {
 const goTable = () => {
   router.push({ path: "/community/table" });
 };
+
 onMounted(() => {
-  text.value = `你好，这是${varible}社区生活!!!欢迎您！`;
+  console.log("community emit");
+  PopupSDK.trigger("community_enter");
+});
+
+onDeactivated(() => {
+  const current = PopupManager.getCurrent();
+  if (current) PopupSDK.close(current);
 });
 </script>
 <style scoped>

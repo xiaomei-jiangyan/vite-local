@@ -13,6 +13,8 @@ defineOptions({
 });
 import { useRouter } from "vue-router";
 import { useTheme } from "@/hooks/useTheme";
+import { nextTick, onMounted, onActivated, onDeactivated, onUnmounted } from "vue";
+import { PopupSDK, PopupManager } from "@/utils/popup-sdk";
 
 const [theme, setTheme] = useTheme();
 
@@ -47,6 +49,16 @@ function handleRedirect() {
     path: "/login",
   });
 }
+
+onMounted(async () => {
+  console.log("mine emit");
+  PopupSDK.trigger("mine_enter");
+});
+
+onDeactivated(() => {
+  const current = PopupManager.getCurrent();
+  if (current) PopupSDK.close(current);
+});
 </script>
 <style scoped>
 .list-box {

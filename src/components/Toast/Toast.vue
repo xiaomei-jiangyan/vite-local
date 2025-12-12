@@ -41,21 +41,6 @@ const hide = () => {
 defineExpose({ show, hide });
 </script>
 <style scoped>
-/* .toast-box {
-  position: fixed;
-  z-index: 998;
-  padding: 5px 8px;
-  top: 50px;
-  left: 50%;
-  border-radius: 5px;
-  transform: translateX(-50%);
-  border: 1px solid #efefef;
-  box-shadow: 1px 1px 0px 0px #e5c5d5; 
-transition: all 0.3s ease;
-/* opacity: 0; 
-  color: #333;
-  background: #fefefe;
-} */
 .toast-box {
   position: fixed;
   top: 50px;

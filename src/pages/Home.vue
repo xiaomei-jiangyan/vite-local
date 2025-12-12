@@ -14,6 +14,7 @@
 import { onMounted, ref, onActivated, onDeactivated, onUnmounted } from "vue";
 import { usePagination } from "@/hooks/usePagination";
 import { debounce } from "@/utils/index";
+import { PopupManager, PopupSDK } from "@/utils/popup-sdk";
 
 defineOptions({
   name: "Home",
@@ -70,6 +71,13 @@ onMounted(() => {
     }
   });
   observer.observe(loadMore.value);
+  console.log("home emit");
+  PopupSDK.trigger("home_enter");
+});
+
+onDeactivated(() => {
+  const current = PopupManager.getCurrent();
+  if (current) PopupSDK.close(current);
 });
 </script>
 

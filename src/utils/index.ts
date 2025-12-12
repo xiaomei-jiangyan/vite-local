@@ -20,6 +20,25 @@ export function throttle(fn: Function, interval: number = 500) {
   };
 }
 
+export const isIos = () => {
+  const ua = navigator.userAgent;
+
+  // 传统 iOS 判断（iPhone/iPod/iPad）
+  if (/iPhone|iPad|iPod/i.test(ua)) return true;
+
+  // iPadOS 13+ 会伪装成 Mac，但触摸屏依然存在
+  if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) {
+    return true;
+  }
+
+  return false;
+};
+
+export const isAndroid = () => /Android/i.test(navigator.userAgent);
+
+export function isMobile() {
+  return isAndroid() || isIos();
+}
 const a = "这是一条新消息";
 
 export const i18nText2 = `${a}, 收到`;
