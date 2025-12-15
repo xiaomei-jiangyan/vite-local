@@ -5,3 +5,83 @@ html[data-theme="dark"] {
   --ant-component-background: red;
   --ant-text-color: rgba(255, 255, 255, 0.85);
 }
+
+html[data-theme="dark"] {
+  /* 1 语义层，这层 不出现组件名，只描述“视觉角色”。页面、列表、表单、按钮统统从这里“借色” */
+  /*
+ 变量名永远描述“用途”
+ 不包含组件名
+ 数量受控（20～30 个封顶） 多了说明你在“实现层”抽象
+*/
+  /* Background */
+  /* --color-bg-page          页面最底层背景
+--color-bg-container     卡片 / 区块 
+--color-bg-elevated      弹窗 / 浮层 */
+
+  /* Text
+--color-text-primary     主文案 
+--color-text-secondary   次级文案 
+--color-text-disabled     禁用文案 */
+
+  /* Border / Divider 
+--color-border-default
+--color-border-weak*/
+
+  /* Brand 
+--color-primary
+--color-danger*/
+
+  /* 2 组件语义变量（按钮 / 输入框等 组件变量 = 页面语义变量的“映射” */
+  /** button 示例 按钮不直接使用 --color-bg-page 
+--btn-bg: var(--color-primary)
+--btn-bg-hover
+--btn-bg-active
+
+--btn-text
+--btn-text-disabled
+
+--btn-border
+--btn-border-hover*/
+}
+
+/* Dark */
+[data-theme="dark"] {
+  --color-bg-page: #121212;
+  --color-bg-container: #1e1e1e;
+  --color-bg-elevated: #242424;
+
+  --color-text-primary: rgba(255, 255, 255, 0.85);
+  --color-text-secondary: rgba(255, 255, 255, 0.65);
+  --color-text-tertiary: rgba(255, 255, 255, 0.45);
+  --color-text-disabled: rgba(255, 255, 255, 0.25);
+
+  --color-border-default: rgba(255, 255, 255, 0.12);
+  --color-border-weak: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+
+  --color-primary: #3c7eff;
+  --color-mask: rgba(0, 0, 0, 0.65);
+}
+
+/* 
+构建基于 CSS Variables 的亮 / 暗主题系统，支持页面语义色抽象、组件自动适配及图片暗黑模式处理
+
+黑暗模式下我会先区分图片语义
+UI 功能型图片会跟随主题，通常用 SVG 或双资源
+内容型图片不做任何处理
+避免使用 filter 反色，保证品牌和内容准确性
+
+页面级语义色我会按背景、文字、边框、功能色来抽
+它们只描述用途，不和具体组件绑定
+所有组件颜色都从语义色派生
+这样亮暗模式、品牌替换成本都很低 
+
+我当时不是直接给组件写暗色样式
+而是先抽了一层页面级语义颜色
+组件只关心自己的语义变量
+所以后面加暗黑模式和换主题都不需要改组件代码
+
+图片我也做了区分
+功能型图片会跟主题走，用 SVG 或双资源(结合媒体查询)
+内容型图片完全不处理，避免反色问题
+*/
