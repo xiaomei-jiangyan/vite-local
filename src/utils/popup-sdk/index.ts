@@ -1,2 +1,4 @@
-export { Manager as PopupManager } from "./UIManager";
-export { default as PopupSDK } from "./sdk.js";
+import { default as PopupManager } from "./UIManager";
+import { default as PopupSDK } from "./sdk";
+
+export default new PopupManager(PopupSDK);

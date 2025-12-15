@@ -34,7 +34,7 @@ defineProps({
 });
 
 // tabbar 三个组件需要缓存
-const cacheList = ["Home", "Mine"];
+const cacheList = ["Home", "Mine", "Community"];
 
 const route = useRoute();
 console.log("layout route", route);

@@ -4,7 +4,7 @@ import Layout from "./pages/Layout.vue";
 import { useTheme } from "@/hooks/useTheme";
 import { theme, ConfigProvider } from "ant-design-vue";
 import Popup from "@/components/Popup/Popup.vue";
-import { PopupSDK, PopupManager } from "@/utils/popup-sdk";
+import PopupManager from "@/utils/popup-sdk";
 
 const darkTheme = theme.darkAlgorithm;
 const defaultTheme = theme.defaultAlgorithm;
@@ -19,20 +19,23 @@ const computedTheme = computed(() => ({
 
 const popupRef = ref();
 
-PopupSDK.init({
-  api: "/api/popup",
-  preload: true,
-  report: (type, data) => {
-    // sendToLogServer(type, data);
-    console.log("上报服务器", type, data);
+PopupManager.init({
+  sdk: {
+    api: "/api/popup",
+    preload: true,
+    report: (type, data) => {
+      // sendToLogServer(type, data);
+      console.log("上报服务器", type, data);
+    },
   },
-});
-
-PopupManager.init((popup) => {
-  popupRef.value.show(popup);
-  return () => {
-    if (popupRef.value) popupRef.value.close(popup);
-  };
+  ui: {
+    show: (popup) => {
+      popupRef.value.show(popup);
+    },
+    close: () => {
+      if (popupRef.value) popupRef.value.close();
+    },
+  },
 });
 </script>
 

@@ -23,7 +23,7 @@ import { ref, computed } from "vue";
 import RenderImage from "./RenderImage.vue";
 import RenderText from "./RenderText.vue";
 import RenderButton from "./RenderButton.vue";
-import PopupSDK from "@/utils/popup-sdk/sdk";
+import PopupManager from "@/utils/popup-sdk";
 
 const emit = defineEmits(["show", "close", "action"]);
 
@@ -76,32 +76,31 @@ const resolveComponent = (node) => {
   return componentMap[node.type];
 };
 
-const show = (schemaJSON) => {
-  schema.value = schemaJSON;
-  visible.value = true;
-  PopupSDK.show(schema.value);
-  emit("show");
-};
-
 const close = () => {
+  // 用户手动关闭
   visible.value = false;
-  PopupSDK.close(schema.value);
+  PopupManager.close(schema.value);
   emit("close");
 };
 
 const emitAction = (payload) => {
-  PopupSDK.click(schema.value);
+  PopupManager.click(schema.value);
   emit("action", payload);
 };
 
 const onMaskClick = close;
 
 defineExpose({
-  show,
+  show: (schemaJSON) => {
+    schema.value = schemaJSON;
+    visible.value = true;
+    emit("show");
+  },
   close: () => {
     if (visible.value) {
       console.log("页面卸载时主动关闭，非用户关闭");
       visible.value = false;
+      emit("close");
     }
   },
 });
@@ -111,7 +110,7 @@ defineExpose({
 .popup-mask {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.03);
   display: flex;
   justify-content: center;
   align-items: center;

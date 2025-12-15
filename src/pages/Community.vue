@@ -12,13 +12,13 @@
   </div>
 </template>
 <script setup>
-import { onMounted, inject, computed, onDeactivated, ref, markRaw } from "vue";
+import { onMounted, inject, computed, onActivated, onDeactivated, ref, markRaw } from "vue";
 import { useRouter } from "vue-router";
 import Search from "@/components/Table/Search.vue";
 import { Input } from "ant-design-vue";
 import { useFetch } from "@/hooks/useFetch";
 import CustomInput from "@/components/Table/CustomInput.vue";
-import { PopupManager, PopupSDK } from "@/utils/popup-sdk";
+import PopupManager from "@/utils/popup-sdk";
 
 const Toast = inject("toast");
 
@@ -118,13 +118,11 @@ const goTable = () => {
 };
 
 onMounted(() => {
-  console.log("community emit");
-  PopupSDK.trigger("community_enter");
+  PopupManager.trigger("community_enter");
 });
 
 onDeactivated(() => {
-  const current = PopupManager.getCurrent();
-  if (current) PopupSDK.close(current);
+  PopupManager.close();
 });
 </script>
 <style scoped>

@@ -3,7 +3,7 @@ import { isIos, isAndroid } from "@/utils/index";
 import { Storage } from "./Storage";
 
 export const Strategy = {
-  delayPopup: [],
+  delayScene: [],
   checkRules(popup, scene) {
     if (!popup.content || !popup.enabled) return false;
     if (popup.displayRules) {
@@ -30,7 +30,7 @@ export const Strategy = {
       )
         return false;
       if (rules.needLogin && !localStorage.getItem("token")) {
-        this.delayPopup.push(delayPopup);
+        this.delayScene.push(scene);
         return false;
       }
       return true;
@@ -45,8 +45,9 @@ export const Strategy = {
       lastShow: Date.now(),
     });
   },
-  getDelayPopup() {
+
+  getDelayScene() {
     // 根据登录情况变化
-    return this.delayPopup;
+    return this.delayScene;
   },
 };
