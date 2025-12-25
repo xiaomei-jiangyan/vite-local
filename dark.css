@@ -6,6 +6,39 @@ html[data-theme="dark"] {
   --ant-text-color: rgba(255, 255, 255, 0.85);
 }
 
+/*
+ ：黑暗模式只改全局语义层，真的够吗？
+
+  考点：黑暗模式改造深度
+  高级回答：
+  对绝大多数场景够用，组件层只关心语义 token。
+  特殊组件如图片或插画，可以用 filter 或双资源切换处理。
+
+  Q2：如果新增一个 Danger Button 怎么处理？
+考点：可扩展性、组合逻辑
+高级回答：
+Danger Button 只需定义 --button-danger-bg / --button-danger-text，
+状态如 :active/:disabled 可以复用全局状态规则，避免每个状态都写爆炸变量。
+
+Q1：为什么要分三层（全局语义 / 组件语义 /状态映射）？
+考点：抽象能力、可扩展性
+高级回答：
+分层可以保证黑暗模式只作用于全局语义层，不会影响组件本身的逻辑，
+组件只依赖语义，不依赖具体颜色值，这样未来可以轻松新增主题或改色，不破坏已有组件。
+
+Q6：如何防止硬编码颜色回流？
+考点：工程治理能力
+高级回答：
+我会结合 grep 扫描 + Node 脚本替换 + ESLint / Stylelint 规则，
+确保新增颜色都走 token，历史遗留颜色逐步替换。
+
+Q8：切换主题会影响性能吗？
+考点：浏览器渲染原理
+高级回答：
+CSS 变量只触发样式计算和局部重绘，不会触发布局阶段，性能开销很小。
+并且限制 transition 属性范围，切换动画平滑。
+*/
+
 html[data-theme="dark"] {
   /* 1 语义层，这层 不出现组件名，只描述“视觉角色”。页面、列表、表单、按钮统统从这里“借色” */
   /*
@@ -42,6 +75,25 @@ html[data-theme="dark"] {
 
 --btn-border
 --btn-border-hover*/
+
+  /* --state-hover-opacity: 0.85;
+  --state-active-opacity: 0.75;
+  --state-disabled-opacity: 0.4;
+
+  --state-disabled-bg: #f0f0f0;
+  --state-disabled-text: #999999; */
+  /*
+    --color-bg-base: #121212;
+  --color-bg-elevated: #1e1e1e;
+
+  --color-text-primary: #e5e5e5;
+  --color-text-secondary: #aaaaaa;
+
+  --color-border-default: #333333;
+
+  --state-disabled-bg: #2a2a2a;
+  --state-disabled-text: #666666;
+  */
 }
 
 /* Dark */

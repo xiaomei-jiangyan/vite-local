@@ -1,0 +1,3 @@
+“SSG 本质上是使用了 SSR 的渲染能力，但把渲染时机前移到了构建阶段，所以它不属于运行时 SSR，而是静态化的服务端渲染。”
+我们官网采用的是 SSG 方案，在构建阶段通过 createSSRApp + renderToString 生成静态 HTML，部署到 CDN。
+它底层用的是 Vue 的 SSR 渲染能力，但不是请求级 SSR。

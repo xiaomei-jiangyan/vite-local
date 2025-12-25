@@ -2,13 +2,21 @@ import { useUserStore } from "@/store/user";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
+const queryString = function (obj: any) {
+  if (!obj) return;
+  return Object.keys(obj).reduce((prev, next) => {
+    prev += next ? `${next}=${obj[next]}&` : "";
+    return prev;
+  }, "");
+};
+
 export type Options = Partial<Request>;
 
 export function useFetch(url: string, options: Options = {}) {
   const { ...others } = options;
   const loading = ref(false);
   const error = ref(null);
-
+  const _url = url;
   const abortController = new AbortController();
   const user = useUserStore();
   const router = useRouter();
@@ -16,15 +24,32 @@ export function useFetch(url: string, options: Options = {}) {
     return new Promise((resolve) => {
       loading.value = true;
 
-      const p = fetch(url, {
+      const fetchOptions = {
         ...others,
-        body: JSON.stringify({
-          token: user.token,
-          ...(others.body ?? {}),
-          ...params,
-        } as BodyInit),
         signal: abortController.signal,
-      });
+      } as any;
+      const _body = {
+        token: user.token,
+        ...(others.body ?? {}),
+      };
+
+      if (others.method !== "POST") {
+        url =
+          _url +
+          "?" +
+          queryString({
+            ..._body,
+            ...params,
+          });
+      } else {
+        fetchOptions.method = "POST";
+        fetchOptions.body = JSON.stringify({
+          ..._body,
+          ...params,
+        } as BodyInit);
+      }
+
+      const p = fetch(url, fetchOptions);
 
       p.then((res) => res.json())
         .then((res: any) => {

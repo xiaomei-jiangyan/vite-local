@@ -31,9 +31,28 @@
 // ])
 
 /**
+  * 使用 @vue/compiler-sfc 解析 SFC，compiler-dom 解析 template AST，Babel 解析 script AST（处理 StringLiteral / TemplateLiteral）。
+  * 对 template 使用 AST 遍历收集文本；对静态属性做“:attr”替换（将静态属性改为绑定）。
+  * 对 script（可选）在 apply-scripts 模式下用 AST 改写字符串为 i18n 调用（生成 i18n.global.t(...)）。
+  * 最终用 Prettier 格式化并写回。为了安全，写回前再次用 SFCParse 验证，若解析失败写到 .bad.vue 以供人工检查（避免破坏源码）。
+
+ * AST 到文本替换很脆弱：纯字符串替换会错误匹配，位置替换更稳但需要精确 offset。
+ * 必须保留 <script setup> 等属性（lang/setup），否则会破坏 SFC 语义。
+ * Prettier 有助于统一格式但也会掩盖结构性问题；因此增加了二次解析校验
+ * 
+ * 
+ * 
+ * 
  * 提取所有文件（vue,js,ts,tsx,jsx）
  * 如果是vue 文件将运用vue-sfc先执行一遍，然后将js bable parse.
- *
+ * 从源码（.vue/.js/.ts 等）提取中文（及日文），
+ * 把 SFC 的 template/script 做替换/注入，并产出翻译池（zh.json 等）。
+ * 扫描源码提取中文/日文文本，替换 SFC template 中的文案为 $t('key')，
+ * 并把 script 中的字符串替换为 i18n.global.t(...)（可选），
+ * 最后写回文件并更新语言池（zh.json）。
+ * 按 block.range 倒序替换
+ * 直接 split/join 原文片段方法在遇到重复文本或包含特殊字符时可能误替换；
+ * 替换顺序需要按最长 original 先替换
  */
 /*
 运行以下命令
@@ -390,7 +409,26 @@ const readAllFile = async (files) => {
         console.warn("格式化失败，使用 fallback html parser", e.message.slice(30));
         formatted = await prettier.format(result, { parser: "html" });
       }
-      fs.writeFileSync(file, formatted, "utf-8");
+
+      // Validate the rewritten SFC before overwriting the original file.
+      // If parsing fails or the descriptor is invalid, write the output to a .bad.vue file
+      // for manual inspection and DO NOT overwrite the original source file.
+      let parsedOk = true;
+      try {
+        const parsed = SFCParse(formatted);
+        // basic sanity checks: must have a descriptor object
+        if (!parsed || !parsed.descriptor) parsedOk = false;
+      } catch (err) {
+        parsedOk = false;
+      }
+
+      if (!parsedOk) {
+        const badPath = file + ".bad.vue";
+        console.warn(`SFC 验证失败，写入 ${badPath} 以供人工检查；源文件未被覆盖: ${file}`);
+        fs.writeFileSync(badPath, formatted, "utf-8");
+      } else {
+        fs.writeFileSync(file, formatted, "utf-8");
+      }
     } else {
       const newTemplate = await exactJSTemplate(file, content, APPLY_SCRIPTS);
       fs.writeFileSync(file, newTemplate, "utf-8");

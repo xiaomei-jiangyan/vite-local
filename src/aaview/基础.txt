@@ -1,0 +1,77 @@
+Q: var、let、const三者区别可以围绕下面五点展开：
+A: 变量提升
+暂时性死区
+块级作用域
+重复声明
+修改声明的变量
+使用
+
+class LruCache {
+  constructor(max) {
+    this.max = max;
+    this.map = new Map()
+  }
+  add(key, value){
+    this.map.add(key, value)
+  }
+  remove(key) {
+    this.map.delete(key)
+  }
+}
+
+const curry = function(fn){
+    return function curriedFn(...args){
+        if(args.length<fn.length){
+            return function(){
+                return curriedFn(...args.concat([...arguments]));
+            }
+        }
+        return fn(...args);
+    }
+}
+const fn = (x,y,z,a)=>x+y+z+a;
+const myfn = curry(fn);
+console.log(myfn(1)(2)(3)(1));
+
+const compose = (...fns)=>val=>fns.reverse().reduce((acc,fn)=>fn(acc),val);
+const pipe = (...fns)=>val=>fns.reduce((acc,fn)=>fn(acc),val);
+
+Q: 浏览器如何异步加载css
+A: 1. 使用javascript将link标签插到head标签最后
+2. 设置link标签media属性为noexis，浏览器会认为当前样式表不适用当前类型，会在不阻塞页面渲染的情况下再进行下载。
+加载完成后，将media的值设为screen或all，从而让浏览器开始解析CSS
+3. 通过rel属性将link元素标记为alternate可选样式表，也能实现浏览器异步加载。同样别忘了加载完成之后，将rel设回stylesheet
+不要使用@import
+css样式文件有两种引入方式，一种是link元素，另一种是@import
+@import会影响浏览器的并行下载，使得页面在加载时增加额外的延迟，增添了额外的往返耗时
+而且多个@import可能会导致下载顺序紊乱
+比如一个css文件index.css包含了以下内容：@import url("reset.css")
+那么浏览器就必须先把index.css下载、解析和执行后，才下载、解析和执行第二个文件reset.css
+
+Q: css哪些属性可以继承
+A: 与文字相关的样式几乎都会继承，布局和视觉相关的样式（margin、padding、border、width、height、background）通常不继承
+几乎所有控制文字的样式都是可继承的：
+color：文字颜色
+font-family：字体
+font-size：字体大小
+font-style：字体样式（如 italic）
+font-variant：字体变体
+font-weight：字体粗细
+letter-spacing：字母间距
+line-height：行高
+word-spacing：单词间距
+text-align：文本对齐
+text-transform：文本转换（大写、小写等）
+visibility：可见性（注意，display 不继承）
+
+表示文本方向与缩进
+direction：文本方向（ltr / rtl）
+text-indent：文本缩进
+
+其他继承属性
+cursor：鼠标样式
+quotes：引号样式（用于 content: open-quote）
+list-style 系列：
+list-style-type
+list-style-image
+list-style-position

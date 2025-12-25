@@ -1,9 +1,8 @@
 <template>
   <div class="scrollbar" ref="wrapper">
     <div class="lists-wrapper">
-      <div v-for="list in lists" :key="list.id" class="list-card">
-        <img :src="list.profile.src" />
-        <span class="title">{{ list.username }}</span>
+      <div v-for="(list, index) in lists" :key="list.id" class="list-card">
+        <HomeCard :list="list" :high="index <= 1" />
       </div>
     </div>
     <div class="loadMore" ref="loadMore">{{ hasMore ? "Load More..." : "No More Data" }}</div>
@@ -15,6 +14,7 @@ import { onMounted, ref, onActivated, onDeactivated, onUnmounted } from "vue";
 import { usePagination } from "@/hooks/usePagination";
 import { debounce } from "@/utils/index";
 import PopupManager from "@/utils/popup-sdk";
+import HomeCard from "./HomeCard.vue";
 
 defineOptions({
   name: "Home",
@@ -25,11 +25,6 @@ defineProps({
 
 const wrapper = ref(null);
 let savedScrollTop = 0;
-
-// onDeactivated(() => {
-//   savedScrollTop = wrapper.value.scrollTop;
-//   console.log(111, "onDeactivated", savedScrollTop, wrapper.value, wrapper.value.scrollTop);
-// });
 
 function onScroll() {
   savedScrollTop = wrapper.value.scrollTop; // 实时记录
@@ -48,12 +43,7 @@ onUnmounted(() => {
 const lists = ref([]);
 const loadMore = ref(null);
 
-const [pageChange, { loading, error, hasMore }] = usePagination("/api/water", {
-  method: "POST",
-  headers: {
-    "content-type": "application/json",
-  },
-});
+const [pageChange, { loading, error, hasMore }] = usePagination("/api/water");
 
 const fetchData = async () => {
   const res = (await pageChange()) ?? [];
@@ -89,7 +79,7 @@ onDeactivated(() => {
 }
 
 .lists-wrapper {
-  padding: 0.5rem;
+  padding: 10px; /** 1rem => 20px */
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr)); /* 两列等宽 */
   gap: 0.6rem;
@@ -98,6 +88,7 @@ onDeactivated(() => {
 
 .list-card {
   /* width: 50%; */
+  /*@ts-ignore */
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -105,20 +96,6 @@ onDeactivated(() => {
   /* padding-top: 0.3rem; */
   padding-bottom: 0.3rem;
   box-shadow: 0 2px 4px var(--boxshadow);
-}
-
-.list-card img {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  border: none;
-  min-height: 300px;
-}
-
-.list-card .title {
-  font-size: 16px;
-  color: var(--text-color);
-  margin-left: 5px;
-  margin-top: 10px;
 }
 
 .loadMore {

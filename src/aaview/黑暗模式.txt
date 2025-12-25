@@ -1,0 +1,49 @@
+黑暗模式： 
+grep -RIn \
+  --exclude-dir=node_modules \
+  --exclude-dir=dist \
+  --exclude=*.min.css \
+  -E "(color|background|border|fill|stroke)\s*:\s*#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b" \
+  src/
+
+grep -RIn \
+  -E "(color|background|border).*rgba?\([^)]*\)" \
+  src/
+
+
+grep -RIn \
+  -E "(color|backgroundColor|borderColor)\s*:\s*['\"]#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})['\"]" \
+  src/
+
+
+import fs from 'fs';
+import path from 'path';
+import { COLOR_MAP } from './color-map';
+
+function replaceColors(file: string) {
+  let content = fs.readFileSync(file, 'utf-8');
+
+  Object.entries(COLOR_MAP).forEach(([color, variable]) => {
+    const reg = new RegExp(color, 'gi');
+    content = content.replace(reg, variable);
+  });
+
+  fs.writeFileSync(file, content);
+}
+
+const TARGET_EXT = ['.css', '.scss', '.vue'];
+
+if (!TARGET_EXT.includes(path.extname(file))) return;
+
+"no-restricted-syntax": [
+  "error",
+  {
+    "selector": "Literal[value=/^#/]",
+    "message": "禁止硬编码颜色，请使用 CSS 变量"
+  }
+]
+
+
+;  主导存量项目（80% 进度）黑暗模式改造，采用 CSS Variables + 语义化 Design Token 实现低侵入主题切换
+; - 通过渐进式替换与工程约束（扫描 + ESLint / Stylelint）控制改造风险，防止硬编码颜色回流
+; - 主题切换仅触发变量变更，避免大规模重排，兼顾性能、体验与未来多主题扩展

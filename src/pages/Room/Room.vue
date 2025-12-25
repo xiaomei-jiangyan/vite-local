@@ -57,7 +57,7 @@ const renderMsg = () => {
   }
 };
 
-const { isOpen, sendMessage, close } = useWebSocket("ws://192.168.0.104:8080?room=1", {
+const { isOpen, sendMessage, close } = useWebSocket("ws://192.168.0.103:8080?room=1", {
   autoReconnect: true,
   reconnectInterval: 3000,
   onMessage: (event) => {

@@ -160,7 +160,7 @@ async function onScroll() {
 
 const throttledScroll = throttle(onScroll, 50);
 // ws 通信
-const { isOpen, sendMessage, close } = useWebSocket("ws://192.168.0.104:8080?room=2", {
+const { isOpen, sendMessage, close } = useWebSocket("ws://192.168.0.103:8080?room=2", {
   autoReconnect: true,
   reconnectInterval: 3000,
   onOpen() {

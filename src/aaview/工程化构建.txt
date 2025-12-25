@@ -1,0 +1,249 @@
+Q: 你们项目的整体工程化是怎么设计的？
+A: 本地开发
+使用 Vite 作为 dev server，基于 ESM + esbuild
+支持 HMR、环境变量隔离（.env.development / .env.production）
+配合 Git hooks 做提交前校验（lint / test）
+
+生产构建
+构建阶段使用 Webpack / Vite build
+对产物做代码分割、Tree Shaking、资源压缩
+输出 hash 文件，支持 CDN 强缓存
+
+发布 & 回滚
+Git tag + CI 自动构建
+构建产物不可变，通过版本号回滚
+
+Q: Webpack 在你们项目中主要解决了什么问题？
+A: 复杂打包能力
+多入口（PC / H5 / 子应用）
+legacy 浏览器兼容（babel + core-js）
+
+构建可控性
+自定义 loader / plugin
+构建产物分析（webpack-bundle-analyzer）
+
+历史项目迁移
+老项目基于 Webpack，逐步迁移到 Vite
+利用 @vitejs/plugin-legacy 过渡
+
+Q: 你做过哪些 Webpack 性能优化？
+A: 缩小构建范围
+exclude / include
+thread-loader（多进程）
+
+减少解析成本
+resolver： 减少尝试次数 + 缩短查找路径
+resolve.alias（合理使用 alias（但别滥用））
+extensions（每多一个扩展名，解析成本都会上升） 
+./foo
+./foo.js
+./foo.json
+./foo.node
+./foo/index.js
+./foo/index.json
+
+Q： alias 会影响 tree shaking 吗？
+A： 如果 alias 指向的是构建后的产物或 CJS 入口，
+可能会绕过 package.json 的 module 字段，导致 tree shaking 失效。
+
+Q： resolver 优化和 loader 优化哪个更重要
+A: resolver 决定“找什么文件”，loader 决定“怎么处理文件”，在大项目中 resolver 的 I/O 成本往往更早成为瓶颈。
+
+webpack 模块解析的性能瓶颈本质在于路径和规则的尝试次数，
+
+
+Q: webpack 构建慢你怎么定位？从哪些维度下手?
+A: 1️⃣ 构建全局耗时分布
+2️⃣ 模块解析（resolver）
+3️⃣ loader / plugin 执行
+4️⃣ 产物结构与缓存命中率
+
+SpeedMeasureWebpackPlugin: 我会先确认是 loader 慢，还是 plugin 慢，而不是盲目加缓存
+模块解析（resolver）: resolver 优化的目标就是让 webpack 尽快命中正确文件，减少无效 I/O
+loader 性能: loader 缓存（必说）
+    options: {
+      cacheDirectory: true
+    }
+    缩小 loader 作用范围（非常重要）: include: path.resolve(__dirname, 'src'),
+plugin 性能: new TerserPlugin({
+  parallel: true
+}) 开发 / 生产分离（重要）:if (isProd) {
+  plugins.push(new MiniCssExtractPlugin());
+}
+
+构建缓存: webpack 5 持久化缓存 cache: {
+  type: 'filesystem',
+  buildDependencies: {
+    config: [__filename]
+  }
+}
+
+提升缓存命中
+cache: filesystem
+
+构建结果优化
+SplitChunks
+runtimeChunk
+
+
+Q: 构建慢和 bundle 大有关系吗？
+A: 有关系，大 bundle 意味着 loader 和 plugin 处理成本更高，尤其是压缩阶段。
+
+Q: 为什么 filesystem cache 能快这么多？
+A: 因为 webpack 可以跳过模块解析和 loader 执行，直接复用序列化结果。
+
+Q: 你怎么验证优化真的有效？
+A: 对比多次构建耗时、命中率、stats 数据，而不是只看一次。
+
+Q: webpack的loader 和 plugin谁先执行
+A: webpack 的构建流程是：先执行 plugin，在模块构建阶段执行 loader；
+但在“单个模块处理”时，是 loader 先于产物相关的 plugin 生效。
+
+Q: loader 能影响 chunk 吗？
+A: loader 只能把一个模块转换成 JS，不能直接操作 chunk；chunk 层面的修改必须用 plugin。
+
+Q: plugin 能替代 loader 吗？
+A: 不适合。loader 适合做单文件转换，plugin 适合做全局构建控制。
+
+Q: 如果我想在编译前修改源码，用 loader 还是 plugin？
+A: 修改单个文件用 loader；如果是全局或跨模块分析，用 plugin。
+
+webpack 在初始化阶段先注册并执行 plugin 的 apply；在模块解析和构建阶段，
+对每个模块执行 loader 链；
+模块完成后 plugin 再介入生成 chunk 和 asset。loader 只负责模块转换，
+plugin 负责整个构建生命周期
+
+Q: plugin 到底是怎么“插进” webpack 的？
+A: webpack 在初始化 Compiler 时，会依次调用每个 plugin 的 apply(compiler) 方法。
+plugin 通过 Tapable 提供的 hooks 订阅 webpack 生命周期中的关键节点，从而在不同阶段执行自定义逻辑。
+
+Q: plugin 里经常看到 compiler 和 compilation，它们有什么区别？
+A: compiler 代表一次完整的构建实例，贯穿整个构建生命周期；
+compilation 代表一次具体的模块构建和打包过程，每次重新编译都会创建新的 compilation。
+
+Q: HMR 触发的是哪个？
+A: 会复用同一个 compiler，但创建新的 compilation。
+
+Q: plugin 能监听哪些关键 hooks？（必背）
+A: 构建开始: compiler.hooks.run compiler.hooks.watchRun
+模块构建: compilation.hooks.buildModule compilation.hooks.succeedModule
+产物阶段: compilation.hooks.emit compilation.hooks.processAssets // webpack5
+
+Q: loader 是怎么被调用的？
+A: 在模块被 NormalModuleFactory!!! 创建后，
+webpack 会根据 module.rules 匹配 loader，并通过 loader-runner!!! 按规则执行 loader 链
+
+Q: pitch 阶段是干嘛的？什么时候会用？
+A: pitch 阶段允许 loader 在资源真正被读取前“拦截”执行流程，
+甚至可以直接返回结果，跳过后续 loader。
+
+Q: 如果 pitch 返回了结果，会发生什么？
+A: 后续 loader 的 pitch 和 normal 阶段都会被跳过，直接进入 normal 阶段的反向执行。
+
+Q: plugin 能不能影响 loader 的执行？
+A: 可以。plugin 可以通过 NormalModuleFactory 的 hooks 修改 loader 配置，甚至动态插入或替换 loader。
+compiler.hooks.normalModuleFactory.tap('Plugin', factory => {
+  factory.hooks.afterResolve.tap('Plugin', data => {
+    data.loaders.push('my-loader');
+  });
+});
+
+Q: loader 和 plugin 能互相通信吗？
+A: 通常通过 compilation 上下文共享，比如在 plugin 中往 compilation 添加自定义属性，
+loader 通过 this._compilation 访问。
+
+Q: processAssets 和 emit 有什么区别？
+A: processAssets 提供了更细粒度的资产处理阶段，避免多个 plugin 在 emit 阶段相互覆盖产物，
+是 webpack5 对插件系统的重要升级
+
+Q: 如果让你写一个 loader 和 plugin，你怎么选？
+A: 如果是单文件内容转换，我会用 loader；如果涉及构建流程控制、跨模块分析或产物处理，我会用 plugin。
+loader 是在模块构建阶段被动执行的转换函数，而 plugin 是主动订阅 webpack 生命周期的构建调度者。
+
+Q: Vite 为什么快？快在哪里？
+A: Vite 快主要体现在 两个阶段：
+
+1️⃣ 开发阶段快
+基于 原生 ESM
+不做 bundle，按需加载
+HMR 是模块级更新，不是全量刷新
+
+2️⃣构建阶段快
+使用 Rollup
+Tree Shaking 更彻底
+更适合现代浏览器
+
+Q: Vite 有没有踩过坑？
+A: 依赖是 CommonJS，需要 optimizeDeps
+动态 import 路径受限
+dev / build 行为不一致
+node polyfill 缺失（crypto / path）
+
+Q: 你们 Git 是怎么管理的？
+A: 我们会结合 项目规模 和 发布频率 来定 Git 规范。
+分支策略: main：线上稳定
+develop：日常集成
+feature/*：功能开发
+hotfix/*：紧急修复
+提交规范: 统一 commit message（feat / fix / chore）
+代码质量保障: PR 强制 review, CI 阶段跑 lint / test / build
+
+Q: 如果让你从 0 搭一个工程化体系，你会怎么做？
+A: 
+1. 明确项目类型
+SPA / MPA
+是否需要 SSR
+是否兼容旧浏览器
+2. 选型
+Vite 作为开发工具
+Webpack 作为构建补充（或统一 Vite）
+Git + CI 做流程约束
+3. 长期可维护
+构建配置模块化
+文档沉淀
+自动化脚本替代人工操作
+
+Q:Node.js 是什么？
+A: Node.js 是基于 V8 的 JavaScript 运行时，适合做 I/O 密集型服务，如 BFF、接口中间层。
+
+Q: Node 为什么不适合 CPU 密集型任务？
+A: 因为 Node 是单线程执行 JS，CPU 密集任务会阻塞事件循环，影响所有请求。
+
+Q: Node 的“单线程”怎么还能扛高并发？
+A: 通过事件循环 + 非阻塞 I/O，把耗时操作交给系统线程池处理。
+
+Q: Node 和浏览器 JS 最大区别？
+A: Node 有文件系统、网络能力，没有 DOM 和 BOM。
+
+Q: CommonJS 和 ES Module 区别？
+A: CommonJS 是运行时加载，ESM 是静态分析、编译期加载。
+
+Q: Node 的 Event Loop 阶段？
+A: timers → poll → check（中间还有 pending / idle）
+
+Q: Promise.then 属于哪一类任务？
+A: 微任务（microtask），优先级高于宏任务。
+
+Q: process.nextTick 有什么特点？
+A： 比 Promise.then 还早执行，可能导致事件循环“饿死”。
+
+Q： setTimeout 和 setImmediate 谁先执行？
+A： 不确定，取决于是否在 I/O 回调中。
+
+Q： 为什么不推荐大量使用 process.nextTick？
+A： 会阻塞事件循环，影响 I/O 处理。
+
+Q： async / await 本质是什么？
+A： Promise + Generator 的语法糖。
+
+Q： Node 中如何避免回调地狱？
+A： Promise、async/await、职责拆分。
+
+Q： Express 和 Koa 区别？
+A：Koa 是洋葱模型，更适合 async/await 和中间件组合。
+
+Q： Node 如何处理大文件？
+A： 使用 Stream，避免一次性加载到内存。
+
+Q： Node 如何处理 CPU 密集任务？
+A： worker_threads 或 child_process。

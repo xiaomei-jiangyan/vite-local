@@ -1,6 +1,17 @@
 /**
 * 导入excel文件，读取内容和旧的进行对比，
 * 然后和用户确认新的变更，如果用户决定写入，则替换原来的翻译文件，并删除原来的export文件
+读取 import.xlsx（或 import.json），把表格数据转换为多语言 map，
+与 export.json（旧导出）对比，列出 added/ deleted/ changed，
+然后在用户确认后把转换后的 JSON 写入 OUT_DIR（写回各语言文件），并删除 export.* 文件
+
+读取翻译人员回填的 Excel（或 export.json），比较旧导出，
+展示 added/changed/deleted，允许用户确认后把变更写回对应语言 JSON。
+
+用 XLSX 读取 Excel -> 2D 数组 -> 转映射（key -> {ZH,EN,JP}）。
+比对算法：按 key 合并旧/新 map，收集 change/add/delete 并展示给用户交互确认（readline）。
+写回时把扁平 key 反向展开成嵌套 JSON 并写文件
+
 测试用
 node src/i18n/i18nImport.cjs --src=src/i18n --out=src/i18n
 正式用

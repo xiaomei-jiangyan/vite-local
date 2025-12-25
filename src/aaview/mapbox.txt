@@ -1,0 +1,143 @@
+Q: 你能先整体介绍一下这个系统的业务背景吗？为什么要用 Mapbox GL？
+A: 选择 Mapbox GL 的原因主要有三点：
+WebGL 渲染，性能好，适合大数据量点/线渲染
+样式高度可定制（symbol / line / fill layer）
+
+
+Q: 你在地图交互上具体做了哪些？能举几个比较复杂的交互吗？
+A: 要素级交互：点击 / hover 高亮点或线
+地图级交互：缩放、拖拽、视角控制
+业务交互：选中多个要素后进行批量操作
+点击轨迹线 → 高亮当前线路 + 弹出信息面板
+Hover 点位 → 改变 icon / 显示 tooltip
+框选（box select）多个要素 → 进入批量编辑模式
+map.on('click', 'layerId', handler)
+使用 feature-state 做高亮，而不是 setData
+
+Q: 大量点位 hover 会不会有性能问题？你怎么优化的？
+A: 降低 hover 频率（throttle）
+用 feature-state 避免频繁重绘
+聚合（cluster）远距离缩放
+hover 只作用在当前 viewport
+
+Q: 轨迹回放是怎么实现的？是一次性画完还是逐帧？
+A: 后端返回完整轨迹点数组
+前端通过 requestAnimationFrame 或 setInterval 控制进度
+每一帧根据 index 截取一段 LineString
+使用 GeoJSON LineString
+动态 setData
+播放 / 暂停 / 倍速 控制
+为了避免 setData 频繁导致卡顿，我们做了 帧合并和节流，例如每 N 个点更新一次
+
+
+我们采用的是 逐帧轨迹回放，而不是一次性画完。
+一次性渲染只适合“静态展示”，而逐帧可以支持 播放 / 暂停 / 倍速 / 拖拽进度条，也更符合业务对“回放”的定义。
+
+
+轨迹回放我们采用的是 逐帧渲染。
+前端基于 GeoJSON LineString，
+通过 requestAnimationFrame 控制播放节奏，
+每一帧逐步向 coordinates 中追加点，并通过 setData 更新地图。
+同时支持播放、暂停、倍速和进度拖拽。
+在性能上，我们通过 批量更新、轨迹抽稀、Web Worker 预处理 等手段，保证在大数据量下依然流畅
+
+Q: 那你具体是怎么逐帧的？
+A: 后端返回的是完整轨迹点数组,
+前端初始化时：
+不直接全部画出来
+而是创建一个 空的 GeoJSON LineString
+{
+  type: 'Feature',
+  geometry: {
+    type: 'LineString',
+    coordinates: []
+  }
+}
+逐帧更新的本质（重点）
+所谓“逐帧”，本质是：
+随着时间推进，不断往 LineString 的 coordinates 里 append 点
+requestAnimationFrame（更平滑，推荐）
+let index = 0;
+function play() {
+  if (index >= points.length) return;
+
+  coords.push([points[index].lng, points[index].lat]);
+  geojson.geometry.coordinates = coords;
+  map.getSource('track').setData(geojson);
+
+  index++;
+  requestAnimationFrame(play);
+}
+
+Q: 播放 / 暂停 / 倍速 是怎么做的？
+A: 1️⃣ 暂停
+停止 rAF / clearInterval
+保留 index
+
+2️⃣ 倍速
+不是改时间，而是改“每帧推进点数”
+// 1x: 每帧 1 个点
+// 2x: 每帧 2 个点
+index += speed;
+
+3️⃣ 拖动进度条
+直接重置 index
+coordinates = points.slice(0, index)
+
+
+Q: 频繁 setData 不会卡吗？
+A: 我们不会每一个点都 setData，而是 累计 N 个点再更新一次
+if (index % 5 === 0) {
+  source.setData(geojson);
+}
+后端预处理 + 前端兜底
+
+Q: 轨迹回放时，那个“移动的小车”怎么做的
+A: 线：逐帧 LineString
+点：Point Feature
+每一帧同步更新点坐标
+
+用 bearing 算方向
+根据前后两点算旋转角度
+
+Q: 如果轨迹有 10 万个点，你怎么办？
+A: 轨迹分段（按时间 / 距离）
+只加载当前播放段
+抽稀 + Worker 预处理
+setData 节流
+
+Q: 如果轨迹点有几万条怎么办？
+A: Web Worker 预处理坐标
+局部视窗渲染
+
+Q: 批量属性编辑具体是怎么设计的？
+A: 批量编辑主要分三步：
+地图上选择多个要素（点/线）
+将选中要素的 ID 存入状态管理（Redux）
+弹出统一编辑面板，对公共字段进行修改并批量提交
+
+选中态与地图图层解耦
+前端先做字段校验
+提交时合并 payload
+
+Q: 如果部分要素更新失败怎么办？
+A: 前端支持失败回滚 / 标记失败项
+后端返回成功/失败列表
+地图高亮失败要素
+
+Q: 旧系统是怎么迁移的？是推倒重来吗？
+A: 数据接口不变
+核心功能优先迁移
+保证线上稳定
+
+Q: 迁移过程中遇到过什么坑？
+A: 坐标系差异
+地图实例重复创建导致内存泄漏
+React 组件卸载时忘记 map.remove()
+
+Q: 如果现在让你重构这个系统，你会重点优化哪里？
+A: 状态管理拆分（地图状态 / 业务状态）
+Web Worker 处理轨迹数据
+地图 Layer 配置化
+更细粒度的性能监控（FPS / setData 次数）
+

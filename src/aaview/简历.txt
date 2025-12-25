@@ -1,0 +1,386 @@
+Q: 请只说你解决过的“最复杂的问题”是什么。
+A: 
+
+Q: 流式数据是 SSE / WebSocket / Fetch Stream 哪种？为什么选它？
+A: SSE(基于 HTTP，部署简单 自动重连 非常适合「服务端主动推送」) / Fetch Stream(只是 HTTP 响应体分块 没有“连接”的概念) = “服务器推送”
+WebSocket = “实时通信通道”
+
+Q: 服务端是一段一段推，前端是 每来一段就 setState 吗？
+A: 
+服务端是高频流式推送，如果前端每个 chunk 都触发 setState，会导致大量无效渲染。我们会在前端做一层缓冲，
+使用 requestAnimationFrame 或节流策略合并多段数据后再更新状态，保证流式效果的同时不影响性能
+AI 推送的是“数据流”
+UI 更新的是“渲染流” 数据来了先存
+浏览器下一帧再渲染
+一帧只 setState 一次
+DOM 直写 socket.onmessage = (chunk) => {
+  ref.current!.textContent += chunk;
+};
+
+Q: 为什么dom直写性能更好？
+A：关键点：更新「范围」极小，没有diff流程。
+DOM 直写性能更高，是因为它跳过了框架的状态调度、Virtual DOM 构建和 diff，
+仅对单一文本节点进行原地修改，非常适合 AI 流式这种高频、小粒度更新的场景。
+但为了保证状态一致性，通常只在流式阶段使用，结束后再同步回框架状态。
+
+Q: 如果 AI 一秒推 50 次内容，你怎么防止页面频繁 re-render？
+A: 我不会让 AI 的推送频率直接驱动 React 的渲染频率，而是将数据接收与 UI 渲染解耦，
+通过缓冲 + 节流 / requestAnimationFrame，保证每一帧最多一次渲染。
+AI 推送频率高于 UI 可承受频率，因此我们不会让每个 chunk 都触发 setState，而是通过 buffer + requestAnimationFrame 或节流机制合并多段数据，
+每一帧最多一次更新，从而避免页面频繁 re-render。同时在极端情况下会采用 DOM 直写作为兜底
+
+React 18 的 automatic batching 只能合并同一事件里的多次状态更新，
+无法限制高频异步事件触发的 render 次数，因此在 AI 流式场景下不能单独解决性能问题。
+Concurrent Mode 能降低卡顿、允许中断渲染，但并不会减少更新次数。
+最终我们还是需要在 React 之外做 buffer 和节流，控制渲染频率，再结合 concurrent 特性提升交互体验
+
+Q: 流式消息 + 虚拟列表 天然冲突，你是怎么解决的？
+A: 流式消息和虚拟列表在设计上是冲突的，所以我的方案不是强行兼容，而是“拆分职责”：
+历史消息走虚拟列表，当前流式消息脱离虚拟列表单独渲染，等流式结束后再合并。
+
+Q：React 18 的 batching / concurrent 能解决吗？
+A：batching 只能合并同一事件里的多次 setState，无法限制高频异步推送触发的 render 次数；
+concurrent mode 可以降低卡顿风险，但不会减少更新次数。
+所以核心还是在 React 之外控制更新频率
+
+Q: 消息高度不固定，虚拟列表怎么算高度？
+A: 消息高度不固定时，虚拟列表并不是“提前算高度”，而是“先估算、再测量、最后缓存”。
+初始使用预估高度保证滚动可用，真实渲染后测量实际高度并缓存，后续滚动直接命中缓存，从而在性能和准确性之间取得平衡。
+因为 DOM 测量会触发 reflow，如果在滚动过程中频繁测量，会导致主线程阻塞，滚动掉帧。
+
+
+Q： 那图片加载导致高度变化怎么办？
+A： 已渲染的历史消息高度变化，会通过 ResizeObserver 修正虚拟列表缓存，
+但不会改变当前 scrollTop，保证用户视角稳定
+
+Q： 如果同时来了很多条新消息？
+A： 只累积未读数，不做任何滚动，直到用户主动回到底部。
+
+Q: 如果用户正在向上翻历史消息，新消息还在流式进来，你怎么处理滚动位置？
+A: 如果用户正在向上浏览历史消息，我不会因为新消息或流式更新而改变当前滚动位置。
+我的做法是：检测用户是否在底部，只有在“贴底状态”才自动跟随滚动；（可通过onScroll事件监听）
+否则冻结 scrollTop，并通过“新消息提示”让用户自主决定是否跳转到底部
+
+Q: IntersectionObserver 只能解决是否加载，并不能控制 优先级，你怎么保证首屏图片最快？
+A: 手动标记首屏图片（如 data-priority="high" 或 class="above-fold"）
+React/Vue 渲染首屏组件时，优先触发请求 首屏优先：
+非首屏图片再使用 IntersectionObserver 延迟加载
+标记首屏资源 → 立即加载
+preload / fetchpriority="high"
+优先渲染首屏组件
+
+
+Q: 浏览器本身有并发限制，你还做“并发调度”，你管的是什么？
+A: 浏览器并发： 每个域名 TCP 连接 6~8 个，超出排队： 同时请求 20 张图片，浏览器只能同时处理 6 个，多余排队
+控制同时发起的请求数量（一般 <= 6）：用调度策略，先加载首屏 6 张，剩余排队等待，
+优化体验，避免关键资源被非关键资源阻塞
+
+防止大量图片或接口同时发起造成首屏资源延迟
+实现方式：Promise 队列 / 并发池 / Scheduler
+
+浏览器管连接数，我们管发起顺序；浏览器管排队，我们管谁先排队；浏览器管并发上限，我们管优先级和任务队列
+并发调度是前端优化策略，不是绕过浏览器限制
+结合 首屏优先 + 延迟加载 + 并发控制 可以显著提升页面性能
+
+Q: 快速滚动时，已经发出去的图片请求能取消吗？怎么做？
+A: 问题背景：用户快速滚动时，会触发大量懒加载图片请求
+如果不取消，浏览器会同时下载不在可视区的图片，浪费带宽
+目标：只保留可视区的图片请求，其余取消
+
+const controller = new AbortController();
+fetch('/image.jpg', { signal: controller.signal })
+  .then(res => res.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    imgElement.src = url;
+  });
+
+// 滚动时取消
+controller.abort();
+
+let img = new Image();
+img.src = '/image.jpg';
+// 滚动时取消
+img.src = ''; // 浏览器会停止加载图片
+img = null;
+
+Q: 你是 怎么提取中文文案的？正则？AST？
+A: 正则无法区分：
+字符串 vs 注释
+JSX 文本节点
+表达式上下文
+是否已被 i18n 包裹
+一句话：正则不知道“这是代码还是文本”
+Ast本质： 把代码解析成一棵语法树，精确知道每一段中文“是什么语义位置”
+
+@babel/parser
+@babel/traverse
+@babel/types
+
+2️⃣ 重点处理的 AST 节点类型
+场景	AST 节点
+普通字符串	StringLiteral
+模板字符串	TemplateLiteral
+JSX 文本	JSXText
+JSX 属性	JSXAttribute
+TS	TSAsExpression / OptionalChain 
+
+path.replaceWith(
+  t.jsxExpressionContainer(
+    t.callExpression(t.identifier('t'), [
+      t.stringLiteral(key)
+    ])
+  )
+);
+
+Q: 如何保证：不漏提 不重复 不误伤变量?
+A: 不漏提： 覆盖所有可能出现中文的 AST 节点类型
+场景	AST 节点
+普通字符串	StringLiteral
+模板字符串	TemplateLiteral.quasis
+JSX 文本	JSXText
+JSX 属性	JSXAttribute.value
+条件表达式	ConditionalExpression
+对象字面量	ObjectProperty.value
+Vue template	编译后 AST 的 TextNode
+
+不重复： AST 层级去重（同一节点只处理一次）
+const visited = new Set();
+
+function collect(text, path) {
+  const key = `${path.node.start}-${path.node.end}`;
+  if (visited.has(key)) return;
+  visited.add(key);
+}
+
+key 层面去重（同文案 ≠ 同 key）
+
+不误伤： path.isStringLiteral() === true
+模板字符串：只提 literal，不碰变量
+TemplateLiteral
+ ├─ quasis: ["你好 ", ""]
+ ├─ expressions: [name]
+JSX 表达式边界控制：JSXExpressionContainer
+ BinaryExpression： 只替换中文 保留变量结构
+
+是通过覆盖所有可能出现用户可见文本的 AST 节点，并结合正则兜底扫描；
+不重复是通过 AST 节点位置去重，并用语义化 key 而不是直接用文案；
+不误伤变量是因为 AST 能明确区分字面量和表达式，我们只处理 StringLiteral / JSXText，
+不会修改变量、函数返回值或运行时表达式
+
+Q: 翻译是人工还是机器？翻译质量怎么兜底？
+A: 首轮一定是机器翻译，人工只做校验和重点修正
+文案类型	翻译方式
+UI 通用文案	机器翻译
+业务核心文案	人工校验
+法务 / 协议	人工翻译
+运营活动	人工翻译
+
+key 绑定校验
+占位符一致性校验（非常重要）：拿到翻译后的结果一定要做占位符校验。！！！zh: "共 {count} 条" en: "Total"
+
+Q: 如果产品经理改了中文，怎么感知、怎么回滚？
+A: 通过上一次的json和导入的json进行比对，对新增的，变化的，删除的都打出来
+
+Q: 你这个 SSG 是：构建时生成？运行时生成？
+A: 构建时生成
+
+Q: 如果内容是 动态的（虚拟恋人），SSG 怎么更新？
+A: 不更新。
+
+Q: SSG 和 SSR 的本质区别你怎么跟新人解释？
+A: SSR 是“点一份现做”，SSG 是“提前做好放橱窗”。
+SSR（服务端渲染）
+像 现场点餐：
+用户来了才开始做
+每个人都可能做一份不一样的
+
+SSG（静态生成）：SSG 不解决数据更新，它解决首屏 HTML 的获取方式。
+像 面包店提前烤好：
+提前做好
+所有人拿到的是同一份
+
+SSG HTML（静态）：JS hydrate 接口 / WebSocket / 本地缓存
+ISR（增量静态再生）【半动态】：ISR（增量静态再生）【半动态】
+
+Q: workbox你缓存了哪些资源？
+A: 
+结合 Service Worker（进阶但非常稳）
+核心原则：
+SW 绝不能兜住旧 HTML
+在线 → 一定走网络
+离线 → 才用缓存
+registerRoute(
+  ({request}) => request.mode === 'navigate',
+  new NetworkFirst({
+    cacheName: 'html',
+    networkTimeoutSeconds: 2
+  })
+)
+
+构建产物（最重要）——Precache
+缓存内容：
+index.html
+JS / CSS（带 hash）
+logo、基础 icon
+原因：
+稳定
+hash 保证更新
+离线也能启动
+Workbox 配置：
+precacheAndRoute(self.__WB_MANIFEST)
+
+静态资源（图片 / 字体）——Runtime Cache
+缓存内容：
+图片（jpg / png / webp）
+字体（woff2）
+策略：
+Cache First
+有上限 + 过期时间
+registerRoute(
+  ({request}) => request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'images',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 100,
+        maxAgeSeconds: 7 * 24 * 60 * 60
+      })
+    ]
+  })
+)
+三方： StaleWhileRevalidate（analytics / sdk/iconfont）
+
+限制缓存大小： maxEntries
+maxAgeSeconds
+
+2️⃣ 版本升级主动清缓存
+
+Q: 接口数据缓存了吗？为什么？
+A: 列表 / 读多写少（如文章列表） 绝对不缓存：
+登录
+用户信息
+权限
+支付
+
+
+Q: 用户打开旧版本页面，你怎么强制升级？
+A: 1. 版本号检测（最常用、最稳）,后端维护版本号前端定时轮询然后强制更新
+（每一次build将更新版本号！！！ 需要确定方式）
+
+Q：ref 和 reactive 的 本质区别？
+A：ref：单值、对象都可以， 对象包装的是浅响应，里面对象不会递归响应（需 reactive 或 toRefs）
+reactive：必须是对象（对象或数组，深度响应，属性改变都会触发
+深度响应式，访问每个属性都会被 get / set 捕获，所有嵌套对象也会递归 Proxy
+是的，ref 和 reactive 都会触发 UI 更新，但触发机制和使用方式略有区别
+
+Q：reactive 为什么不能直接解构？
+A： 本质原因：Proxy 代理的依赖收集
+reactive 返回的是 Proxy 对象
+Vue 响应式依赖收集的关键是 通过 Proxy 的 getter 捕获依赖
+解构破坏了对象访问路径：
+原本 state.count → Proxy getter → track 依赖
+解构出来的 count → 普通变量 → 不再经过 Proxy getter
+所以修改 count++ 不会触发依赖。
+解决方式
+1️⃣ 使用 toRefs / toRef
+2️⃣ 直接使用 state 而不解构
+3️⃣ ref 包对象（少用）
+
+Q：watch 和 watchEffect 的使用边界？
+watchEffect 用于副作用函数，依赖自动收集，适合动态依赖和组合计算场景；
+watch 用于监听明确的数据源，可以拿到新旧值，适合异步副作用和精确触发场景。
+本质区别是 依赖收集方式与触发精度。
+
+watchEffect 立即执行，watch 默认延迟（可设置 { immediate: true }）
+watch 可以配合 deep: true 监听对象内部变化
+watchEffect 对象/数组的深层变化也会触发，因为依赖收集到所有访问的属性
+
+
+特性	watchEffect	watch
+响应式依赖收集	自动收集 getter/函数内所有 reactive/ref	显式指定源：响应式对象、ref 或 getter
+执行时机	立即执行一次（默认）	默认不立即执行，可通过 { immediate: true }
+适合场景	副作用函数，依赖可能动态变化	监听 特定数据 的变化，做精确响应
+参数	函数 fn()	源、回调 (newVal, oldVal)
+
+
+1️⃣ watchEffect 的边界
+适合：
+副作用依赖不固定或动态
+简单的数据绑定或副作用（如打印、自动更新 DOM、触发 API）
+依赖复杂、无法提前列出
+
+2️⃣ watch 的边界
+适合：
+精确监听某个或几个数据变化
+需要oldVal / newVal 做对比或差异处理
+做异步副作用（如 API 调用、节流）
+
+注：
+watch 不会自动收集动态依赖
+必须显式指定监听源
+
+Q: useCallback 一定能优化性能吗？
+A： useCallback 是“缓存函数引用”，不是“缓存执行结果”。
+只有在函数作为 props 传给 memo 子组件，或作为 effect/memo 依赖时才有意义。
+否则，额外开销可能让性能更差。
+有效：
+const memoizedFn = useCallback(() => {...}, [a])
+useEffect(() => {
+  memoizedFn()
+}, [memoizedFn])
+
+无效（普通函数，不传子组件 无必要）：
+const Parent = () => {
+  const handleClick = useCallback(() => {}, [])
+  return <button onClick={handleClick}>Click</button>
+}
+
+Q：Hooks 闭包陷阱你在真实项目里踩过吗？
+Hooks 闭包陷阱本质
+React 函数组件每次渲染都会生成新的函数作用域
+useEffect / setTimeout / event handler / useCallback 内部引用的变量，是闭包“捕获”当时渲染的状态
+如果状态更新了，但闭包没有被重新创建，闭包里的旧值不会变化 → “闭包陷阱”
+
+function Timer() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      console.log(count) // 捕获的是初始值 0
+      setCount(count + 1) 
+    }, 1000)
+    return () => clearInterval(id)
+  }, [])
+}
+
+定时器 / WebSocket
+定时发送数据、轮询接口
+初始状态捕获导致发送的 payload 总是旧数据
+事件回调
+input、button 的回调闭包捕获旧 props/state
+导致 UI 看起来不同步
+useCallback + memo
+memo 子组件依赖 useCallback 的函数
+函数闭包捕获旧 state → 子组件拿到的是“过时状态”
+
+解决方案：
+1️⃣ 用函数式更新（最常用）
+2️⃣ useRef 保存最新值
+3️⃣ 依赖列表控制
+
+React Hooks 闭包陷阱的核心就是“闭包捕获了旧渲染的变量”，
+解决办法是函数式更新或通过 ref 保持最新状态，而不是盲目在依赖里加所有变量
+
+Q：Redux 在你项目里 解决了什么 Vue 做不到的事？
+在项目里使用 Redux，主要解决了 Vue 响应式做不到的几个问题：
+跨模块、跨微前端共享状态，保证多应用状态一致
+不可变状态 + 时间旅行调试，方便排查历史操作
+中间件集中处理异步和副作用，业务逻辑可预测
+reducer 纯函数可单元测试，提高稳定性
+Vue 的响应式在组件内和 Vuex 可以处理常规状态管理，但面对跨模块、复杂流程、历史追溯需求时，Redux 更适合。
+Vue 响应式天然便利，但 Redux 提供了“全局可预测、可回溯、可测试”的状态管理能力，
+这在复杂或跨应用项目里至关重要。
+
+Q: 在你们团队里，一般是怎么判断
+“一个性能优化值不值得做” 的？

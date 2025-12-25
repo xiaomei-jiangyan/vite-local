@@ -10,10 +10,13 @@ export const defaultPageSize = 10;
 
 export function usePagination(
   url: string,
-  options: Options & { pageSize: number; pageNum: number }
+  options: Options & { pageSize: number; pageNum: number } = {
+    pageSize: defaultPageSize,
+    pageNum: 0,
+  }
 ) {
-  const pageSize = ref(options.pageSize ?? defaultPageSize);
-  const pageNum = ref(options.pageNum ?? 0);
+  const pageSize = ref(options.pageSize);
+  const pageNum = ref(options.pageNum);
   const hasMore = ref(true);
 
   const [pageFetch, response] = useFetch(url, options);

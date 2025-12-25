@@ -1,5 +1,14 @@
 /**
+ * 把本地语言 JSON（en.json, zh.json, jp.json）
+ * 扁平化成表格（export.xlsx/export.json），并报告缺失项
  * 扁平化嵌套 JSON
+ * 
+ * 递归扁平化 nested JSON 为 key -> value（例如 home.title）。
+ * 合并所有语言键并写成 Excel（XLSX 库）和 export.json，并输出缺失项提示。
+
+
+ * 目的：将本地语言文件（如 en.json、zh.json、jp.json）
+ * 扁平化成行式表格（Excel），便于翻译人员使用或导出差异
  * { test: { 1: 'xxx', 2: 'yyy' } } => { 'test.1': 'xxx', 'test.2': 'yyy' }
  测试
 node src/i18n/i18nExport.cjs --src=src/i18n --out=src/i18n

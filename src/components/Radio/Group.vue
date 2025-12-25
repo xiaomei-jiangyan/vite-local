@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits, provide, watch } from "vue";
+import { ref, provide, watch } from "vue";
 
 // props 定义
 const props = defineProps({
